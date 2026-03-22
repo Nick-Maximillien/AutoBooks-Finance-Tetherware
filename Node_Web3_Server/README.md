@@ -1,53 +1,84 @@
-# Node.js WEB3 Server
+# Node_Web3_Server: ERC-4337 Account Abstraction Relayer
 
-This document describes the Node.js Engine responsible for:
+A Node.js-based blockchain relayer implementing ERC-4337 Account Abstraction standards. The Node_Web3_Server orchestrates the submission of UserOperations to blockchain bundlers, converting validated transactions from IFRS_Backend into on-chain settlement.
 
-* Creating invisible wallets for users
-* Encrypting & storing keys via Django
-* Funding wallets using **L1 → L2 bridging (Sepolia → Lisk)**
-* Signing & broadcasting transactions to Lisk
-* Providing service‑to‑service APIs only for Django
+## Overview
 
-## A) Node Engine Diagram (Transaction Signing & Wallet Orchestration)
+The Node_Web3_Server provides:
+
+- **UserOperation Construction**: Converts transactions to ERC-4337 compliant UserOperations
+- **Account Abstraction Integration**: Smart account deployment and execution coordination
+- **Blockchain Bundler Interface**: Multiple bundler service support (Pimlico, Stackup, Alchemy)
+- **Multi-Chain Support**: Ethereum, Polygon, Optimism, Arbitrum, and other chains
+- **Real-Time State Tracking**: Transaction status monitoring and confirmation tracking
+- **Gas Optimization**: Dynamic gas price calculation and bundling strategies
+- **Transaction History**: Immutable record of all blockchain submissions
+- **REST API**: Full HTTP interface for transaction submission and status queries
+
+## Architecture
+
+### System Integration
 
 ```
-[User Request]
-       |
-       v
-[Django API] --(POST /sign-transaction)--> [Node Engine]
-       |                                      |
-       |                                Decrypt Private Key
-       |                                      |
-       |                                Sign Transaction
-       |                                      |
-       |----------------------------------> Submit TX to Blockchain (L1/L2)
+┌──────────────────────┐
+│  IFRS_Backend        │
+│  (Validated Txns)    │
+└──────────┬───────────┘
+           │
+    REST API POST /submit
+           │
+           ▼
+┌──────────────────────────────────────────┐
+│  Node_Web3_Server (Relayer)              │
+├──────────────────────────────────────────┤
+│ ┌────────────────────────────────────┐   │
+│ │  UserOp Constructor                │   │
+│ │  ├── Payload Encoding              │   │
+│ │  ├── account_gasLimits Calculation │   │
+│ │  ├── preVerificationGas Estimation │   │
+│ │  └── gasFees (maxFeePerGas setup)  │   │
+│ └────────────────────────────────────┘   │
+│                                          │
+│ ┌────────────────────────────────────┐   │
+│ │  Bundler Router                    │   │
+│ │  ├── Pimlico (Primary)             │   │
+│ │  ├── Stackup (Fallback)            │   │
+│ │  └── Alchemy (Fallback 2)          │   │
+│ └────────────────────────────────────┘   │
+│                                          │
+│ ┌────────────────────────────────────┐   │
+│ │  State Manager                     │   │
+│ │  ├── Pending UserOps               │   │
+│ │  ├── Confirmation Tracking         │   │
+│ │  ├── Failed Bundling Retry         │   │
+│ │  └── Memory Pool Management        │   │
+│ └────────────────────────────────────┘   │
+│                                          │
+│ ┌────────────────────────────────────┐   │
+│ │  Chain Managers                    │   │
+│ │  ├── Ethereum Mainnet (ID: 1)      │   │
+│ │  ├── Polygon (ID: 137)             │   │
+│ │  ├── Optimism (ID: 10)             │   │
+│ │  ├── Arbitrum (ID: 42161)          │   │
+│ │  └── Additional chains...          │   │
+│ └────────────────────────────────────┘   │
+└──────────────────────────────────────────┘
+           │
+           ├─── JSON-RPC ──→ Bundler Services (Pimlico, Stackup, etc.)
+           │
+           ├─── JSON-RPC ──→ Blockchain RPC Providers
+           │
+           └─→ State Polling (Monitor on-chain execution)
+
+Bundler contracts and relayers forward UserOps to chosen Entry Point
+           │
+           ▼
+    ┌─────────────────┐
+    │  Blockchain     │
+    │  (on-chain      │
+    │   execution)    │
+    └─────────────────┘
 ```
-
-**Short Description:**
-
-Node Engine is the secure transaction orchestrator. It receives requests from Django, decrypts user keys, signs transactions, and submits them to L1 or L2 blockchains. Users never handle private keys or gas.
-
-
----
-
-## 1. Overview
-
-The Node.js Engine acts as the **crypto core** of the HakiChain system.
-
-### 🔵 Django Backend
-
-* Receives wallet creation requests
-* Sends encrypted private keys + metadata
-* Requests signing of contract transactions
-
-### 🟢 Blockchain Layer
-
-* Sepolia (L1) for the bridge
-* Lisk (L2) for execution
-
-> This engine **does NOT talk to the frontend directly**. All requests must pass through Django for authentication.
-
----
 
 ## 2. Environment Variables
 
@@ -61,203 +92,217 @@ The Node.js Engine acts as the **crypto core** of the HakiChain system.
 
 ---
 
-## 3. Core Functional Components
+## Key Components
 
-### 3.1 Initialization
+### 1. UserOperation Constructor
 
-* Sets up providers:
+Converts validated IFRS transactions into ERC-4337 UserOperations:
 
-  * `masterprovider` (Sepolia)
-  * `provider` (Lisk L2)
-* Loads the master wallet used for bridging funds
-
-### 3.2 AES Encryption
-
-#### Encrypt Private Key
-
-* Uses AES (CryptoJS)
-* Stores encrypted private key in Django
-
-#### Decrypt Private Key
-
-* Used only when signing transactions
-* Validates output to avoid corrupt encrypted data
-
----
-
-## 4. Wallet Generation
-
-### Function: `generateUserWallet()`
-
-Creates a new random EVM-compatible wallet.
-
-Returns:
-
-* `address`
-* `publicKey`
-* `privateKeyEncrypted`
-* `rawPrivateKey` (never stored permanently)
-
-### Flow
-
-1. Wallet generated
-2. Private key encrypted
-3. Django notified via POST `/create-wallet` flow
-4. Wallet funded using bridge
-
----
-
-## 5. Layer1 → Layer2 Funding (Bridge Logic)
-
-The engine uses the official Lisk L1 bridge contract:
-
-```
-function depositETHTo(address _to, uint32 _minGasLimit, bytes _extraData) payable
-```
-
-### 5.1 Steps Performed
-
-1. Encode bridge call manually using ABI interface
-2. Estimate gas
-3. Send transaction through master wallet
-4. Wait for finalization
-5. Poll Lisk L2 until balance appears (exponential backoff)
-
-### 5.2 Wait Logic
-
-`waitForFunds(recipientAddress, requiredAmountBigInt)` polls the L2 balance until bridged ETH arrives.
-
----
-
-## 6. Transaction Signing & Broadcasting
-
-### Endpoint: `POST /sign-and-send-tx`
-
-Used only by Django.
-
-#### Input
-
+**Input Transaction** (from IFRS_Backend):
 ```json
 {
-  "private_key_encrypted": "...",
-  "tx_payload": {"to": "0x...", "data": "0x...", "value": "100000000000000000"},
-  "wallet_address": "0x...",
-  "user_id": 12
+  "transaction_id": "txn-2026-03-15-001",
+  "recipient": "0x742d35Cc6634C0532925a3b844Bc2e7595f42bE9",
+  "amount": "100.5",
+  "currency": "USDT",
+  "data": "0x",
+  "timestamp": 1686312900000
 }
 ```
 
-#### Process
-
-1. Decrypt private key
-2. Validate signer address matches expected wallet
-3. Build raw transaction
-4. Broadcast to Lisk via wallet provider
-5. Return transaction hash
-
-#### Output
-
+**Output UserOperation** (ERC-4337 format):
 ```json
 {
-  "success": true,
-  "txHash": "0x..."
+  "sender": "0xc0ffee254729296a45a3885639AC7E10F9d54979",
+  "nonce": "42",
+  "initCode": "0x",
+  "callData": "0xa9059cbb000000000000000000000000742d35cc6634c0532925a3b844bc2e7595f42be90000000000000000000000000000000000000000000000056bc75e2d630eb20000",
+  "accountGasLimits": "0x000000000000000000000000000000000000000000000000000000000000a4b80000000000000000000000000000000000000000000000000000000000001d4c0",
+  "preVerificationGas": "0x00000000000000000000000000000000000000000000000000000000000118c0",
+  "gasFees": "0x00000000000000000000000000000000000000000000000000b9aca0000000000ffffffff",
+  "paymasterAndData": "0x",
+  "signature": "0x..."
 }
 ```
 
----
+**Gas Calculations**:
+- `callGasLimit`: Estimated gas needed to execute the transaction (typically 21000 for ERC-20 transfers + buffer)
+- `verificationGasLimit`: Gas for EntryPoint to validate the signature (typically 50000)
+- `preVerificationGas`: Gas for bundle data processing (varies by bundler)
+- `maxPriorityFeePerGas`: Tip to bundler (current: 2 Gwei typical)
+- `maxFeePerGas`: Total max gas price including priority fee
 
-## 7. Wallet Creation (Service-to-Service)
+### 2. Bundler Router
 
-### Endpoint: `POST /create-wallet`
+Manages connections to multiple bundler services with failover logic:
 
-Triggered by Django after `signup` event.
+**Primary Bundler: Pimlico**
+- Endpoint: `https://api.pimlico.io/v2/{chainId}/rpc`
+- Min stake requirement: 32 ETH (or alternative)
+- Supported chains: Ethereum, Polygon, Optimism, Arbitrum
 
-### Flow
+**Fallback 1: Stackup**
+- Endpoint: `https://api.stackup.sh/v1/{chainId}/rpc`
+- Flexible requirement
+- Good chain coverage
 
-1. Node generates wallet
-2. Sends metadata to Django:
+**Fallback 2: Alchemy**
+- Endpoint: `https://{chain}.g.alchemy.com/v2/{apiKey}`
+- Premium tier support
+- Ethereum and Polygon focus
 
-   * address
-   * public_key
-   * private_key_encrypted
-3. Bridges **0.001 ETH** to newly created wallet
-4. Responds with funding confirmation
+### 3. State Manager
 
-### Response
+Tracks pending and completed UserOperations with lifecycle management from pending → included → confirmed.
 
-```json
-{
-  "success": true,
-  "wallet_address": "0x...",
-  "fundedAmount": "0.01 ETH",
-  "txHash": "0x..."
-}
+### 4. Chain Managers
+
+Per-chain managers handle RPC communication for Ethereum, Polygon, Optimism, Arbitrum, and others.
+
+## Tech Stack
+
+| Component         | Technology              | Purpose                              |
+|-------------------|-------------------------|--------------------------------------|
+| Runtime           | Node.js 16+             | JavaScript execution                |
+| Framework         | Express.js              | HTTP server and routing             |
+| Web3 Library      | ethers.js v6            | Blockchain interactions            |
+| Web3 Framework    | thirdweb SDK            | Account abstraction utilities      |
+| HTTP Client       | node-fetch              | API requests to bundlers            |
+| Encryption        | crypto-js               | Transaction payload signing         |
+| Environment       | dotenv                  | Configuration management            |
+
+## Installation & Setup
+
+### Prerequisites
+
+- Node.js 16.x or higher
+- npm or yarn package manager
+- Bundler API keys (Pimlico, Stackup, or Alchemy)
+- Blockchain RPC endpoints (public or private)
+
+### Installation Steps
+
+1. **Clone and navigate to Node_Web3_Server directory**:
+   ```bash
+   cd Node_Web3_Server
+   ```
+
+2. **Install dependencies**:
+   ```bash
+   npm install
+   ```
+
+3. **Create environment configuration**:
+   Create a `.env` file in the `Node_Web3_Server` root directory:
+   ```env
+   # Server Configuration
+   PORT=3001
+   NODE_ENV=production
+   LOG_LEVEL=info
+
+   # Primary Chain (Ethereum Mainnet)
+   CHAIN_1_RPC=https://eth.llamarpc.com
+   CHAIN_1_BUNDLER=pimlico
+   CHAIN_1_ENTRY_POINT=0x5FF137D4b0FDCD49DcA30c7B5Cb8ff81B490713D
+   
+   # Bundler API Keys
+   PIMLICO_API_KEY=your_pimlico_api_key
+   STACKUP_API_KEY=your_stackup_api_key
+   ALCHEMY_API_KEY=your_alchemy_api_key
+   
+   # Secondary Chains
+   CHAIN_137_RPC=https://polygon-rpc.com
+   CHAIN_137_BUNDLER=pimlico
+   CHAIN_137_ENTRY_POINT=0x5FF137D4b0FDCD49DcA30c7B5Cb8ff81B490713D
+   
+   # Gas Configuration
+   GAS_PRICE_MULTIPLIER=1.2
+   MAX_PRIORITY_FEE_GWEI=2
+   MAX_FEE_PER_GAS_GWEI=100
+   
+   # State Management
+   PENDING_USEROP_TTL_MINUTES=30
+   CONFIRMATION_BLOCKS=12
+   
+   # IFRS_Backend Integration
+   IFRS_BACKEND_URL=http://localhost:8000/api
+   ```
+
+4. **Start the server**:
+   ```bash
+   # Development mode (with nodemon)
+   npm run dev
+   
+   # Production mode
+   npm start
+   ```
+
+5. **Verify the server is running**:
+   ```bash
+   curl http://localhost:3001/health
+   ```
+
+## API Endpoints
+
+### POST /api/submit
+
+Submit a validated transaction for blockchain execution.
+
+### GET /api/status/{userOpHash}
+
+Query the status of a submitted UserOperation.
+
+### GET /api/transactions
+
+List all submitted transactions with pagination.
+
+### POST /api/estimate-gas
+
+Estimate gas costs for a proposed transaction.
+
+## Transaction Flow
+
+End-to-end submission process from IFRS_Backend validation through blockchain confirmation tracking.
+
+## Error Handling and Retries
+
+Automatic retry with exponential backoff and bundler fallback logic for failed submissions.
+
+## Performance Characteristics
+
+| Operation                     | Expected Time       | Notes                            |
+|-------------------------------|---------------------|---------------------------------|
+| UserOp Submission             | 2-5 seconds         | Including bundler response       |
+| Gas Estimation                | 500ms - 1 second    | RPC call to blockchain          |
+| Confirmation Check            | <100ms              | In-memory state lookup          |
+| Bundling (inclusion in block) | 20-60 seconds       | Depends on bundler capacity     |
+| Full confirmation (12 blocks) | 3-5 minutes         | On Ethereum mainnet             |
+
+## Security Considerations
+
+All UserOperations are verified before submission with signature validation, nonce checks, and rate limiting.
+
+## Testing
+
+```bash
+# Run all tests
+npm test
+
+# Coverage report
+npm test -- --coverage
 ```
 
----
+## Version Information
 
-## 8. API Endpoints (Node Engine)
+- **Node_Web3_Server Version**: 1.0.0
+- **ERC-4337 Standard**: Latest (EntryPoint v0.6)
+- **ethers.js Version**: 6.15.0
+- **Node.js Minimum**: 16.0
+- **Last Updated**: March 2026
 
-### 1. POST /create-wallet
+## Related Documentation
 
-Creates wallet → stores in Django → funds it via bridge.
-
-### 2. POST /sign-and-send-tx
-
-Signs + broadcasts a custom transaction on Lisk.
-
-> ⚠️ Important: These endpoints **must never** be exposed to the frontend. Only Django backend service should call them.
-
----
-
-## 9. Security Model
-
-* Raw private keys are **never returned** to any API.
-* AES-encrypted key stored only in Django.
-* Decryption only happens inside Node.js memory.
-* Node.js never logs decrypted keys.
-* Only Django backend can request signing.
-
----
-
-## 10. Server Startup
-
-Default port: `4000`
-
-Logs:
-
-```
-Node Web3 Server running on port 4000
-```
-
----
-
-## 11. High-Level Architecture Flow
-
-```
-[Django] → /create-wallet → [Node Engine] → Generate Wallet
-                                        ↓
-                                      Encrypt
-                                        ↓
-                           Save to Django (wallet metadata)
-                                        ↓
-                        Bridge funds (Sepolia → Lisk)
-                                        ↓
-                        Django queries wallet normally
-
-[Frontend]
-   ↓ (Auth)
-[Django]
-   ↓ /sign-transaction
-[Node Engine] → Sign + Broadcast → Lisk
-```
-
----
-
-## 12. Summary
-
-This Node.js Engine is the:
-
-* **Vault** (key management)
-* **Bridge operator** (L1 → L2 funding)
-* **Transaction signer** (contract execution)
-* **Backend-only service** (strictly no frontend access)
+- [AutoBooks Finance Main README](../README.md)
+- [Frontend-UI Documentation](../Frontend-UI/README.md)
+- [IFRS_Backend Documentation](../IFRS_Backend/README.md)
+- [Local_Tetherware Documentation](../Local_Tetherware/README.md)

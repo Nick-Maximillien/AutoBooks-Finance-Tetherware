@@ -1,41 +1,120 @@
-# IFRS Accounting Domain Engine (Django) - FinTech Backend
+# IFRS_Backend: Deterministic Accounting Engine
 
-[![Python](https://img.shields.io/badge/Python-3.11+-blue.svg)](https://www.python.org/)
-[![Django](https://img.shields.io/badge/Django-5.1.7-green.svg)](https://www.djangoproject.com/)
-[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-15-336791.svg)](https://www.postgresql.org/)
-[![Redis](https://img.shields.io/badge/Redis-7-DC382D.svg)](https://redis.io/)
-[![Docker](https://img.shields.io/badge/Docker-Supported-2496ED.svg)](https://www.docker.com/)
-[![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+A production-grade Django application implementing IFRS for SMEs accounting rules as a deterministic, auditable ledger system. The IFRS_Backend serves as the financial truth layer for the AutoBooks Finance system, enforcing double-entry bookkeeping invariants and generating IFRS-compliant financial statements.
 
-A **production-grade, domain-driven accounting engine** built with Django, designed to enforce **IFRS for SMEs (Third Edition 2025)** rules while serving as a **reliable financial truth layer for AI services** and fintech applications.
+## Overview
 
-This system provides deterministic, auditable financial data suitable for:
-- 🤖 **AI Financial Assistants** - Google Gemini-powered conversational finance agents
-- 📄 **Automated Document Processing** - Intelligent invoice, receipt, and payroll ingestion with AI classification
-- 💼 **Fintech Applications** - Core accounting infrastructure with regulatory compliance
-- 📊 **Regulatory-Aware Reporting** - IFRS-compliant Balance Sheets, P&L, and Cash Flow statements
-- 💬 **Multi-Channel AI Agents** - WhatsApp, Web Chat, and real-time streaming interfaces
-- 🔐 **Audit-Ready Systems** - Immutable journal entries with complete transaction trails
+The IFRS_Backend provides:
 
-### Core Strength: Deterministic Financial State
-Unlike black-box accounting systems, every transaction is validated against IFRS rules at the backend level. This ensures that AI agents, clients, and stakeholders always see the same financial truth.
+- **IFRS-Compliant Chart of Accounts**: 60+ predefined accounts mapped to IFRS for SMEs (2025 Third Edition)
+- **Double-Entry Enforcement**: Atomic transaction validation ensuring debits always equal credits
+- **Multi-Document Auto-Classification**: Intelligent document type identification using LLM analysis
+- **Deterministic Audit Gates**: Validation rules that produce identical results across system instances
+- **Comprehensive Financial Reporting**: Balance sheet, P&L, cash flow, and journal entry APIs
+- **Immutable Audit Trail**: All transactions permanently recorded with user identity and timestamp
+- **REST API**: Full HTTP interface for transaction posting and report generation
 
----
+## Architecture
 
-## 🎯 Core Objectives
+### System Components
 
-- ✅ **Enforce Double-Entry Bookkeeping** - Structural invariant: Assets = Liabilities + Equity
-- 📚 **IFRS Compliance** - Model IFRS for SMEs (2025 Third Edition) chart of accounts and measurement rules
-- 🔒 **Deterministic Financial State** - Provide trustworthy data for downstream AI systems without hidden side effects
-- 🚀 **Automatic Document Posting** - Intelligently classify and post documents (invoices, receipts, payroll, assets, loans, etc.)
-- 📈 **Clean Financial Reporting** - Generate explainable, auditable reports: Balance Sheet, P&L, Cash Flow, Journal Entries
-- 🧠 **AI-First Design** - Google Gemini integration for document intelligence, entity verification, and anomaly detection
-- 🔄 **Conversational Banking** - WhatsApp/Web agents with voice synthesis (Google Cloud TTS)
-- 🎯 **Extensible & Testable** - Clear separation of concerns; backend owns all accounting logic
+```
+┌─────────────────────────────────────────┐
+│     Frontend-UI (Document Upload)       │
+└──────────────────┬──────────────────────┘
+                   │
+          REST API POST /transactions
+                   │
+                   ▼
+        ┌──────────────────────┐
+        │  Transaction Parser  │  Validates request format
+        └──────────────┬───────┘
+                       │
+                       ▼
+        ┌──────────────────────────┐
+        │ Document Classification  │  LLM-based type detection
+        │ (Google Gemini AI)       │  Entity verification
+        └──────────────┬───────────┘
+                       │
+                       ▼
+        ┌──────────────────────────┐
+        │  Account Mapping Engine  │  Map transaction to IFRS codes
+        │  (Deterministic)         │  Validate account semantics
+        └──────────────┬───────────┘
+                       │
+                       ▼
+        ┌──────────────────────────┐
+        │  Double-Entry Validator  │  Verify debits = credits
+        │  (Atomic Invariant)      │  Check amount constraints
+        └──────────────┬───────────┘
+                       │
+                       ▼
+        ┌──────────────────────────┐
+        │  Ledger Postings         │  PostgreSQL transaction
+        │  (Immutable)             │  Journal entry creation
+        └──────────────┬───────────┘
+                       │
+                       ▼
+        ┌──────────────────────────┐
+        │  Response to Frontend    │  Status confirmation
+        │  (Ledger Balance Update) │  Posting acknowledgment
+        └──────────────────────────┘
+```
 
----
+### Data Model Hierarchy
 
-## 🚀 Key Features
+**Chart of Accounts (60+ Accounts)**
+
+```
+ASSETS
+├── Current Assets
+│   ├── 1110 Cash and Cash Equivalents
+│   ├── 1120 Short-term Investments
+│   ├── 1130 Accounts Receivable
+│   ├── 1140 Less: Allowance for Doubtful Accounts (Contra)
+│   ├── 1210 Inventories
+│   └── 1290 Other Current Assets
+└── Non-Current Assets
+    ├── 1310 Property, Plant & Equipment
+    ├── 1311 Less: Accumulated Depreciation (Contra)
+    ├── 1410 Intangible Assets
+    ├── 1411 Less: Accumulated Amortization (Contra)
+    └── 1510 Investment Property
+
+LIABILITIES
+├── Current Liabilities
+│   ├── 2110 Accounts Payable
+│   ├── 2120 Short-term Borrowings
+│   ├── 2130 Current Portion of Long-term Debt
+│   └── 2210 Other Current Liabilities
+└── Non-Current Liabilities
+    ├── 2310 Long-term Borrowings
+    ├── 2320 Deferred Tax Liabilities
+    └── 2330 Long-term Provisions
+
+EQUITY
+├── 3110 Share Capital
+├── 3120 Share Premium
+├── 3210 Retained Earnings
+└── 3220 Other Reserves
+
+INCOME
+├── 4110 Revenue from Sales
+├── 4120 Revenue from Services
+├── 4210 Cost of Sales
+├── 4220 Cost of Services
+└── 4300 Other Income
+
+EXPENSES
+├── 5110 Employee Salaries and Benefits
+├── 5120 Depreciation and Amortization
+├── 5130 Rent and Utilities
+├── 5140 Professional Fees
+├── 6110 Finance Costs
+└── 6210 Income Tax Expense
+```
+
+## Key Features
 
 ### 1. IFRS-Aligned Domain Model
 - **60+ Predefined IFRS Accounts** - Fully mapped per IFRS for SMEs 2025 Edition
