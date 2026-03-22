@@ -1,0 +1,14 @@
+[
+    {
+        "id": "1",
+        "name": "Laptop",
+        "price": 999,
+        "imageUrl": "/images/recom1.jpeg"
+    },
+    {
+        "id": "2",
+        "name": "Phone",
+        "price": 999,
+        "imageUrl": "/images/recom2.jpeg"
+    }
+]

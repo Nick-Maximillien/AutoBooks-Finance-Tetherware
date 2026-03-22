@@ -1,0 +1,2761 @@
+/* Default: portrait / small screens */
+.inline-nav {
+  display: none; /* hide inline nav by default */
+}
+
+.dropdown-nav {
+  display: block; /* show dropdown nav by default */
+}
+
+@media screen and (orientation:portrait) {
+    .portrait\:text-sm {
+    font-size: 0.875rem;
+  }
+  .portrait\:text-lg {
+    font-size: 1.125rem;
+  }
+  .portrait\:pt-6 {
+    padding-top: 1.5rem;
+  }
+  .portrait\:h-\[300px\] {
+    height: 300px;
+  }
+
+  .body {
+    background-color: cyan;
+    width: 100%;
+    margin: 3px;
+    padding: 5px;
+    height: 100%;
+    font-size: 100%;
+  }
+
+  .container {
+    width: 100%;
+    padding: 1rem;
+  }
+  a {
+    text-decoration: none;
+  }
+
+  .header {
+    width: 100%;
+    border-radius: 10px;
+    margin-bottom: 5;
+  }
+  .homeHeader, .homeHeader1 {
+    font-weight: bold;
+    font-family: Verdana, Geneva, Tahoma, sans-serif;
+    color: white;
+    width: 100%;
+    padding: 2%;
+  }
+  .homeHeader1 {
+    font-size: 100%;
+    color: white;
+    text-align: center;
+  }
+  .homeComponents {
+    margin-bottom: 20px;
+  }
+
+  .logo, .nav {
+    float: left;
+  }
+
+  .logo {
+    width: 20%;
+    padding: 0;
+  }
+
+  .logoImg {
+    width: 100%;
+  }
+
+  .head {
+    position: relative;
+    z-index: 1000;
+    width: 100%;
+    height: auto;
+    margin: 0;
+    padding: 0;
+    background-color: silver;
+    color: white;
+  }
+ 
+  .menuIcon {
+    width: 100%;
+    margin: 0;
+    padding: 0;
+
+  }
+
+  .menuItem {
+    text-decoration: none;
+    margin: 0.5rem;
+    font-weight: bold;
+  }
+
+  nav ul {
+    list-style: none;
+    display: block;
+    gap: 2.5rem;
+  }
+
+  nav ul li {
+    position: relative;
+  }
+
+  nav {
+    position: relative;
+    left: 35%;
+  }
+  .dropdown-list {
+    font-size: 90%;
+    font-weight: bold;
+    position: absolute;
+    top: 100%;
+    right: 0.5%;
+    width: 70%;
+    background: whitesmoke;
+    list-style: none;
+    padding: 1rem;
+    margin: 0;
+    border: 6px solid silver;
+    display: none;
+    flex-direction: column;
+    z-index: 1001;
+    text-align: left;
+    border-radius: 10px;
+  }
+  .dropdown-container:hover .dropdown-list {
+    display: block;
+  }
+
+  .dropdown-list, li {
+    display: block;
+    border-top: #000;
+  }
+
+  .dropdown-list li:hover {
+    background: skyblue;
+    border-radius: 10px;
+    padding: 5px;
+  }
+
+  a:hover {
+    color: cyan;
+    text-decoration: none;
+  }
+  .loginToggle,
+  .signupToggle,
+  .createProfileToggle {
+    background-color: rgb(121, 236, 121);
+    border-radius: 0.5rem;
+    width: 90%;
+    margin: 1rem auto;
+    padding: 0.5rem;
+    font-size: 1.2rem;
+  }
+
+  .createProfileToggle {
+    width: 50%;
+    border-radius: 0.75rem;
+  }
+
+  .create {
+    font-weight: normal;
+    font-size: 0.9rem;
+  }
+
+  .login {
+    margin: 2rem auto;
+  }
+
+  .farmerProfile,
+  .weatherWidget {
+    float: left;
+    width: 50%;
+    padding: 1rem;
+  }
+
+  .farmerProfile {
+    border: 1px solid darkgreen;
+    border-radius: 0.75rem;
+  }
+
+  .profilePic {
+    border-radius: 50%;
+    padding: 0.5rem;
+  }
+
+  .createFarm,
+  .farmForm {
+    float: left;
+    width: 50%;
+    padding: 1rem;
+  }
+
+  .createFarm {
+    border: 5px solid green;
+    border-radius: 0.75rem;
+    width: 47%;
+    margin: 0.5rem;
+  }
+
+  .farmForm {
+    background-color: green;
+    border-radius: 0.75rem;
+  }
+
+  .formInput {
+    width: 100%;
+    padding: 0.75rem;
+    margin-bottom: 1rem;
+    border-radius: 0.5rem;
+    border: 1px solid #ccc;
+    font-size: 1rem;
+  }
+
+  .createFarmBtn {
+    margin: 1rem auto;
+    border-radius: 0.5rem;
+    background-color: blanchedalmond;
+    padding: 0.75rem 1.5rem;
+    display: block;
+  }
+
+  .dashboardBtns {
+    width: 90%;
+    margin: auto;
+  }
+
+  .togglesA,
+  .togglesB {
+    width: 30%;
+    padding: 1rem 0;
+    float: left;
+  }
+
+  .togglesC {
+    width: 100%;
+  }
+
+  .uploadImage {
+    background-color: silver;
+    border-radius: 0.5rem;
+    padding: 1rem;
+    margin: 1rem auto;
+  }
+
+  .analysis {
+    width: 100%;
+  }
+
+  .analyses {
+    font-size: 1rem;
+  }
+
+  .footer {
+    background-color: rgb(121, 110, 98);
+    padding: 1rem;
+    text-align: center;
+  }
+
+  /* === Dashboard Portrait === */
+  .dashboardContainer {
+    width: 100%;
+  }
+  .dashboardGrid {
+    width: 100%;
+    position: relative;
+    right: 15%;
+  }
+
+  .dashboardHeading {
+    position: relative;
+    text-align: center;
+    top: 10px;
+    width: 100%;
+    border-style: solid;
+    border-color: white;
+    border-radius: 10px;
+    border-width: 10px;
+    background-color: skyblue;
+    position: relative;
+    right: 9%;
+  }
+
+  .droneButtons {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+  }
+  .chatbar {
+    width: 100%;
+  }
+
+  .dashboardCard {
+    border-radius: 0.75rem;
+    width: 100%;
+    padding: 1rem;
+    background: white;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.05);
+    transition: all 0.3s ease-in-out;
+    margin-bottom: 10px;
+  }
+
+  .dashboardCard:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
+  }
+
+  .createProfileForm {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    padding: 1rem;
+  }
+
+  .profileCard {
+    background: linear-gradient(145deg, #e0f7fa, #ffffff);
+  }
+
+  .weatherCard {
+    background: linear-gradient(145deg, #fff3e0, #ffffff);
+  }
+
+  .toggleCard {
+    background: linear-gradient(145deg, #f1f8e9, #ffffff);
+  }
+
+  .formCard {
+    background: linear-gradient(145deg, #ede7f6, #ffffff);
+  }
+
+  .farmList {
+    background: linear-gradient(145deg, #fce4ec, #ffffff);
+  }
+
+  .uploadLink {
+    background: linear-gradient(145deg, #e8f5e9, #ffffff);
+    border-radius: 10px;
+  }
+
+  .weatherHistoryLink {
+    background: linear-gradient(145deg, #f3e5f5, #ffffff);
+  }
+
+  .imageUploadCard {
+    background: linear-gradient(145deg, #e1f5fe, #ffffff);
+  }
+
+  .droneDataSection {
+    background: linear-gradient(145deg, #f9fbe7, #ffffff);
+  }
+  .farmerProfileWrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 0.75rem;
+  padding: 1rem;
+  border-radius: 0.75rem;
+  background: linear-gradient(145deg, #e0f7fa, #ffffff); /* cyanish */
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.05);
+  transition: all 0.3s ease-in-out;
+}
+
+.farmerProfileWrapper:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
+}
+
+.profileHeading {
+  font-size: 1.4rem;
+  font-weight: 600;
+  color: #2e7d32;
+  margin-bottom: 0.5rem;
+}
+
+.profilePic {
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid #a5d6a7;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.profileError {
+  color: red;
+  text-align: center;
+}
+
+.profileLoading {
+  color: #333;
+  text-align: center;
+}
+
+.noImage {
+  font-style: italic;
+  color: #888;
+}
+.farmFormWrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 1rem;
+  border-radius: 0.75rem;
+  background: linear-gradient(145deg, #ede7f6, #ffffff); /* soft lavender gradient */
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.05);
+  transition: all 0.3s ease-in-out;
+}
+
+.farmFormWrapper:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
+}
+
+.farmFormHeading {
+  font-size: 1.4rem;
+  color: #5e35b1;
+  text-align: center;
+  margin-bottom: 0.5rem;
+}
+
+.formLabel {
+  font-weight: 500;
+  font-size: 1rem;
+  margin-bottom: 0.25rem;
+}
+
+.formInput {
+  width: 100%;
+  padding: 0.75rem;
+  border-radius: 0.5rem;
+  border: 1px solid #ccc;
+  font-size: 1rem;
+}
+
+.createFarmBtn {
+  margin-top: 1rem;
+  border-radius: 0.5rem;
+  background-color: #d1c4e9;
+  padding: 0.75rem 1.5rem;
+  font-weight: bold;
+  cursor: pointer;
+  border: none;
+}
+
+.formMessage {
+  margin-top: 0.75rem;
+  text-align: center;
+  font-weight: 500;
+  color: #2e7d32;
+}
+.weatherWidgetCard {
+  background: linear-gradient(135deg, #fff3e0, #ffffff);
+  border-radius: 0.75rem;
+  padding: 1rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  transition: all 0.3s ease-in-out;
+  margin: 0.5rem;
+}
+
+.weatherWidgetCard:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+}
+
+.weatherWidgetHeading {
+  font-size: 1.3rem;
+  color: #ef6c00;
+  margin-bottom: 0.75rem;
+  text-align: center;
+}
+
+.weatherStatus {
+  font-size: 1rem;
+  padding: 1rem;
+  color: #555;
+  text-align: center;
+}
+
+.errorText {
+  color: red;
+}
+.farmList {
+  background: linear-gradient(135deg, #fce4ec, #ffffff);
+  border-radius: 0.75rem;
+  padding: 1rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  margin: 0.5rem;
+  transition: all 0.3s ease-in-out;
+}
+
+.farmListHeading {
+  font-size: 1.4rem;
+  color: #c2185b;
+  text-align: center;
+  margin-bottom: 0.75rem;
+}
+
+.farmCard {
+  background-color: #fff0f5;
+  border: 1px solid #f8bbd0;
+  border-radius: 0.5rem;
+  padding: 0.75rem;
+  margin-bottom: 1rem;
+  transition: background-color 0.3s ease;
+}
+
+.farmCard:hover {
+  background-color: #fce4ec;
+}
+
+.farmStatus {
+  text-align: center;
+  font-size: 1rem;
+  color: #555;
+}
+
+.errorText {
+  color: red;
+}
+.uploadImage {
+  background-color: silver;
+  border-radius: 0.5rem;
+  padding: 1rem;
+  margin: 1rem auto;
+}
+
+.analysis {
+  width: 100%;
+  margin-top: 1rem;
+  background: #ffffff;
+  padding: 1rem;
+  border-radius: 0.75rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.analysisResult {
+  border-bottom: 1px solid #ccc;
+  padding: 0.75rem 0;
+}
+
+.uploadLink {
+  color: green;
+  text-decoration: underline;
+}
+
+.analyses {
+  font-size: 1rem;
+  font-weight: bold;
+  text-align: center;
+}
+
+.errorText {
+  color: red;
+  font-weight: bold;
+}
+.droneDataSection {
+  padding: 1rem;
+  background-color: #f9fbe7;
+  border-radius: 0.75rem;
+  margin: 1rem auto;
+}
+
+.droneDataHeading {
+  text-align: center;
+  font-size: 1.5rem;
+  font-weight: bold;
+  margin-bottom: 1rem;
+  color: #33691e;
+}
+
+.droneCard {
+  border: 1px solid #c5e1a5;
+  background: #ffffff;
+  padding: 1rem;
+  margin-bottom: 1.5rem;
+  border-radius: 0.75rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+}
+
+.droneImage {
+  width: 100%;
+  height: auto;
+  object-fit: cover;
+  margin: 1rem 0;
+  border-radius: 0.5rem;
+}
+
+.droneEmptyText {
+  text-align: center;
+  color: #757575;
+  font-style: italic;
+}
+.signupSection {
+  padding: 2rem;
+  border-radius: 0.75rem;
+  margin: 2rem auto;
+  width: 90%;
+  max-width: 400px;
+}
+
+.signupHeading {
+  font-size: 1.75rem;
+  text-align: center;
+  color: #2e7d32;
+  margin-bottom: 1rem;
+}
+
+.signupForm {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.signupBtn {
+  background-color: #66bb6a;
+  border: none;
+  border-radius: 0.5rem;
+  padding: 0.75rem;
+  color: white;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+.signupRedirect {
+  background-color: #43a047;
+  border: none;
+  border-radius: 0.5rem;
+  padding: 1rem;
+  font-size: 1rem;
+  color: white;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+.links {
+  color: white;
+}
+
+.signupBtn:hover {
+  background-color: #388e3c;
+}
+
+.errorText {
+  color: red;
+  font-size: 0.9rem;
+  text-align: center;
+}
+.loginSection {
+  padding: 2rem;
+  border-radius: 0.75rem;
+  margin: 2rem auto;
+  width: 90%;
+  max-width: 400px;
+}
+
+.loginHeading {
+  font-size: 1.75rem;
+  text-align: center;
+  color: #1e3a8a;
+  margin-bottom: 1rem;
+}
+
+.loginForm {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.loginBtn {
+  background-color: #3b82f6;
+  border: none;
+  border-radius: 0.5rem;
+  padding: 0.75rem;
+  color: white;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.loginBtn:hover {
+  background-color: #1d4ed8;
+}
+
+.signupRedirect {
+  text-align: center;
+  margin-top: 1rem;
+  font-size: 0.9rem;
+}
+.signupRedirec {
+  background-color: silver;
+  border: none;
+  border-radius: 0.5rem;
+  padding: 1rem;
+  font-size: 1rem;
+  color: black;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s ease;text-align: center;
+}
+
+.signupLink {
+  color: #2563eb;
+  font-weight: bold;
+  text-decoration: none;
+}
+
+.signupLink:hover {
+  text-decoration: underline;
+}
+.loginToggleContainer {
+  text-align: center;
+  margin: 1rem auto;
+  width: 100%;
+}
+
+.loginToggle {
+  background-color: silver;
+  padding: 0.75rem 1rem;
+  border-radius: 0.5rem;
+  width: 50%;
+  margin: 0 auto;
+  font-size: 1.1rem;
+  cursor: pointer;
+  font-weight: bold;
+  transition: background-color 0.3s ease;
+}
+
+.loginToggle:hover {
+  background-color: #9ae6b4;
+}
+
+.loginToggleCard {
+  margin-top: 1rem;
+  padding: 1.5rem;
+  border-radius: 0.75rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+.signupToggleContainer {
+  text-align: center;
+  margin: 1rem auto;
+  width: 100%;
+}
+
+.signupToggle {
+  background-color: silver;
+  padding: 0.75rem 1rem;
+  border-radius: 0.5rem;
+  width: 50%;
+  margin: 0 auto;
+  font-size: 1.1rem;
+  cursor: pointer;
+  font-weight: bold;
+  transition: background-color 0.3s ease;
+}
+
+.signupToggle:hover {
+  background-color: #9ae6b4;
+}
+
+.signupToggleCard {
+  margin-top: 1rem;
+  padding: 1.5rem;
+  border-radius: 0.75rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+.homeImageContainer {
+  width: 100%;
+}
+.homeImage {
+  width: 100%;
+  margin: 10px;
+}
+.droneFeedContainer {
+  padding: 1rem;
+  background: #f9fbe7;
+  border-radius: 0.75rem;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+  margin: 1rem auto;
+  width: 95%;
+  text-align: center;
+}
+
+.droneFeedHeading {
+  font-size: 1.75rem;
+  font-weight: bold;
+  color: #33691e;
+  margin-bottom: 1rem;
+}
+
+.droneFeedCard {
+  padding: 1rem;
+  background: white;
+  border: 2px solid #aed581;
+  border-radius: 0.5rem;
+}
+
+.droneStatusText {
+  font-size: 1.2rem;
+  color: #558b2f;
+  margin-bottom: 0.5rem;
+}
+
+.droneCoordText {
+  font-size: 1rem;
+  color: #666;
+  margin-bottom: 1rem;
+}
+
+.droneImage {
+  border-radius: 0.5rem;
+  margin-top: 1rem;
+  width: 100%;
+  height: auto;
+  object-fit: cover;
+}
+
+.droneNoDataText {
+  font-style: italic;
+  color: #999;
+}
+.historyContainer {
+  padding: 1rem;
+  background-color: #f9f9f9;
+  border-radius: 0.75rem;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+  max-width: 95%;
+  margin: 1.5rem auto;
+}
+
+.historyHeading {
+  font-size: 1.5rem;
+  text-align: center;
+  margin-bottom: 1rem;
+  color: #2e7d32;
+}
+
+.historyList {
+  list-style: none;
+  padding: 0;
+}
+
+.historyItem {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  margin-bottom: 1.25rem;
+  padding: 0.75rem;
+  background: #ffffff;
+  border: 1px solid #c5e1a5;
+  border-radius: 0.5rem;
+}
+
+.historyImage {
+  border-radius: 0.5rem;
+}
+
+.historyText {
+  flex: 1;
+}
+
+.historyTimestamp {
+  color: #777;
+  font-size: 0.9rem;
+}
+.weatherHistoryContainer {
+  margin-top: 1.5rem;
+  padding: 1rem;
+  background: #f0fdf4;
+  border-radius: 0.75rem;
+  border: 1px solid #b2dfdb;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  max-width: 95%;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.weatherHistoryTitle {
+  font-size: 1.25rem;
+  font-weight: bold;
+  color: #1b5e20;
+  margin-bottom: 1rem;
+  text-align: center;
+}
+
+.weatherHistoryList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.weatherHistoryItem {
+  padding-bottom: 0.5rem;
+  margin-bottom: 0.75rem;
+  border-bottom: 1px solid #dcedc8;
+  font-size: 0.95rem;
+  color: #2e7d32;
+}
+
+.weatherLoading {
+  text-align: center;
+  font-size: 1rem;
+  color: #888;
+}
+
+.errorText {
+  color: red;
+  font-size: 0.9rem;
+  text-align: center;
+}
+.heroSection {
+  align-items: center;
+  justify-content: center;
+  padding: 4rem 1rem;
+  min-height: 80vh;
+}
+
+.heroContent {
+  flex-direction: column;
+  align-items: center;
+  gap: 2rem;
+  width: 100%;
+}
+.layoutBody {
+  margin: 0;
+  padding: 0;
+  font-family: 'Segoe UI', sans-serif;
+  background-color: #069c1aff;
+  color: #1b5e20;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.layoutMain {
+  flex: 1;
+  padding: 1rem;
+  max-width: 98%;
+  margin: auto;
+  border-radius: 12px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+}
+.contactContainer {
+  background-color: #fefefe;
+  border-radius: 10px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.05);
+  max-width: 900px;
+  margin: auto;
+  margin-top: 25px;
+}
+
+.contactTitle {
+  font-size: 2rem;
+  color: #2e7d32;
+  font-weight: 600;
+}
+
+.contactDetails p {
+  font-size: 1rem;
+  margin-bottom: 0.75rem;
+  color: #333;
+}
+
+.contactInput {
+  margin-bottom: 1rem;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  padding: 0.75rem;
+}
+
+.contactInput:focus {
+  outline: none;
+  border-color: #4caf50;
+  box-shadow: 0 0 0 0.2rem rgba(76, 175, 80, 0.2);
+}
+.servicesContainer {
+  background: #fcfcfc;
+  border-radius: 10px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.05);
+  max-width: 1000px;
+  margin: auto;
+  margin-top: 25px;
+}
+
+
+.serviceCard {
+  background-color: #f5fdf7;
+  border: 1px solid #d0ebd5;
+  border-radius: 8px;
+  padding: 20px;
+  transition: transform 0.2s;
+  margin-bottom: 10px;
+  width: 100%;
+}
+
+.serviceCard:hover {
+  transform: scale(1.02);
+}
+
+.serviceTitle {
+  color: #388e3c;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+.serviceDescription {
+  font-size: 1rem;
+  color: #444;
+}
+/* Default - portrait */
+.whatsapp-diagnosis-container {
+  display: flex;
+  justify-content: center;
+  padding: 1rem;
+}
+
+.whatsapp-card {
+  background: white;
+  padding: 1.5rem;
+  border-radius: 1rem;
+  max-width: 420px;
+  width: 100%;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+}
+
+.whatsapp-heading {
+  text-align: center;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #1a202c;
+  margin-bottom: 1rem;
+}
+
+.whatsapp-description {
+  text-align: center;
+  font-size: 0.9rem;
+  color: #4a5568;
+}
+
+.whatsapp-code {
+  background: #f7fafc;
+  padding: 0.5rem 1rem;
+  font-size: 1rem;
+  border-radius: 0.5rem;
+  border: 1px solid #e2e8f0;
+  margin: 0.75rem auto;
+  width: fit-content;
+}
+
+.whatsapp-button {
+  display: block;
+  background-color: #25d366;
+  color: white;
+  font-weight: 600;
+  text-align: center;
+  padding: 0.6rem 1rem;
+  border-radius: 0.5rem;
+  text-decoration: none;
+  margin: 0 auto;
+  width: 100%;
+  transition: background 0.2s ease;
+}
+
+.whatsapp-button:hover {
+  background-color: #1ebe5b;
+}
+
+.whatsapp-note {
+  font-size: 0.75rem;
+  text-align: center;
+  color: #718096;
+  margin-top: 0.5rem;
+}
+
+.whatsapp-already-joined {
+  display: block;
+  font-size: 0.85rem;
+  color: #3182ce;
+  text-align: center;
+  margin-top: 0.5rem;
+  background: none;
+  border: none;
+  cursor: pointer;
+  text-decoration: underline;
+}
+.aboutContainer {
+  background: linear-gradient(135deg, #fff3e0, #ffffff);
+  border-radius: 0.75rem;
+  padding: 1rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  transition: all 0.3s ease-in-out;
+  margin: 0.5rem;
+  color: white;
+}
+
+.aboutTitle {
+  font-weight: bold;
+  color: #2e7d32;
+}
+
+.aboutText {
+  font-size: 1.05rem;
+  color: cyan;
+  line-height: 1.7;
+}
+
+.aboutList {
+  padding-left: 20px;
+  list-style-type: none;
+  font-weight: bold;
+  color: white;
+}
+
+.aboutList li::after {
+  content: "✔️ ";
+  margin-right: 5px;
+}
+.about-list {
+  margin: 5px;
+}
+.btnabt {
+  color: wheat;
+}
+.whatsapplogo {
+  border-radius: 10px;
+}
+.weather-chart-heading {
+  font-weight: 600;
+  margin-bottom: 1rem;
+  text-align: center;
+}
+
+.weather-chart-status {
+  text-align: center;
+  padding: 0.75rem;
+  color: #6b7280;
+}
+
+.weather-chart-status.error {
+  color: #dc2626;
+}
+
+.weather-chart-wrapper {
+  width: 100%;
+}
+  .weatherWidgetCard {
+    width: 90vw;
+  }
+    .uploadCard {
+    flex-direction: column;
+  }
+}
+
+@media screen and (orientation:landscape) {
+  .body {
+    background-color: cyan;
+    width: 100%;
+    margin: 3px;
+    padding: 5px;
+    height: 100%;
+  }
+
+  .home {
+    width: 100%;
+    border: 1px solid #000;
+  }
+  .homeHeader, .homeHeader1 {
+    font-weight: bold;
+    font-family: Verdana, Geneva, Tahoma, sans-serif;
+    color: white;
+    width: 100%;
+    padding: 2%;
+    text-align: center;
+  }
+  a {
+    text-decoration: none;
+  }
+    .header {
+    width: 100%;
+    height: 50px;
+    border-radius: 10px;
+    margin-bottom: 5;
+    padding-bottom: 30px;
+  }
+  .homeHeader, .homeHeader1 {
+    font-weight: bold;
+    font-family: Verdana, Geneva, Tahoma, sans-serif;
+    color: white;
+    width: 100%;
+    padding: 2%;
+  }
+  .homeHeader1 {
+    font-size: 100%;
+    color: white;
+  }
+
+  
+
+  
+
+  
+  .head {
+    margin: 0;
+    padding-right: 30px;
+    color: white;
+    font-weight: bold;
+  }
+
+  .menuIcon {
+    width: 100%;
+    padding: 0;
+  }
+  
+
+  .menuItem {
+    text-decoration: none;
+    margin: 0.5rem;
+    font-weight: bold;
+  }
+
+  
+  .dropdown-list {
+    font-size: 90%;
+    font-weight: bold;
+    position: absolute;
+    top: 100%;
+    width: 70%;
+    background: rgb(228, 177, 101);
+    list-style: none;
+    padding: 1rem;
+    margin: 0;
+    border: 6px solid white;
+    display: none;
+    flex-direction: column;
+    z-index: 1001;
+    text-align: left;
+    border-radius: 10px;
+  }
+  .dropdown-container:hover .dropdown-list {
+    display: block;
+  }
+
+  .dropdown-list, li {
+    display: block;
+    border-top: #000;
+  }
+
+  .dropdown-list li:hover {
+    background: gold;
+  }
+
+  a:hover {
+    color: cyan;
+    text-decoration: none;
+  }
+
+  .logoImg {
+    width: 70%;
+  }
+
+  .footer {
+    background-color: bisque;
+    padding: 1rem;
+    text-align: center;
+  }
+
+  .dashboardGrid {
+    display: grid;
+    max-height: 50%;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 2rem;
+    padding: 2rem;
+  }
+
+    .dashboardHeading {
+    position: relative;
+    text-align: center;
+    top: 10px;
+    width: 97%;
+    border-style: solid;
+    border-color: white;
+    border-radius: 10px;
+    border-width: 10px;
+    background-color: skyblue;
+  }
+  .droneButtons {
+    flex-direction: row;
+    justify-content: center;
+    gap: 1rem;
+  }
+
+  .dashboardCard {
+    border-radius: 0.75rem;
+    padding: 1rem;
+    margin: 0.5rem;
+    background: white;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.05);
+    transition: all 0.3s ease-in-out;
+  }
+  .weatherWidgetCard {
+    width: 60vw;
+  }
+  .dashboardCard:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
+  }
+
+  .createProfileForm {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    padding: 1rem;
+  }
+
+  .profileCard {
+    background: linear-gradient(145deg, #e0f7fa, #ffffff);
+  }
+
+  .weatherCard {
+    background: linear-gradient(145deg, #fff3e0, #ffffff);
+  }
+
+  .toggleCard {
+    background: linear-gradient(145deg, #f1f8e9, #ffffff);
+  }
+
+  .formCard {
+    background: linear-gradient(145deg, #ede7f6, #ffffff);
+  }
+
+  .farmList {
+    background: linear-gradient(145deg, #fce4ec, #ffffff);
+  }
+
+  .uploadLink {
+    background: linear-gradient(145deg, #e8f5e9, #ffffff);
+  }
+
+  .weatherHistoryLink {
+    background: linear-gradient(145deg, #f3e5f5, #ffffff);
+  }
+
+  .imageUploadCard {
+    background: linear-gradient(145deg, #e1f5fe, #ffffff);
+  }
+
+  .droneDataSection {
+    background: linear-gradient(145deg, #f9fbe7, #ffffff);
+  }
+  .farmerProfileWrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 0.75rem;
+  padding: 1rem;
+  border-radius: 0.75rem;
+  background: linear-gradient(145deg, #e0f7fa, #ffffff); /* cyanish */
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.05);
+  transition: all 0.3s ease-in-out;
+}
+
+.farmerProfileWrapper:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
+}
+
+.profileHeading {
+  font-size: 1.6rem;
+  font-weight: 600;
+  color: #2e7d32;
+  margin-bottom: 0.5rem;
+}
+
+.profilePic {
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid #a5d6a7;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.profileError {
+  color: red;
+  text-align: center;
+}
+
+.profileLoading {
+  color: #333;
+  text-align: center;
+}
+
+.noImage {
+  font-style: italic;
+  color: #888;
+}
+.farmFormWrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 1rem 2rem;
+  border-radius: 0.75rem;
+  background: linear-gradient(145deg, #ede7f6, #ffffff);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.05);
+  transition: all 0.3s ease-in-out;
+}
+
+.farmFormWrapper:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
+}
+
+.farmFormHeading {
+  font-size: 1.6rem;
+  color: #5e35b1;
+  text-align: center;
+  margin-bottom: 0.75rem;
+}
+
+.formLabel {
+  font-weight: 500;
+  font-size: 1rem;
+}
+
+.formInput {
+  width: 100%;
+  padding: 0.75rem;
+  border-radius: 0.5rem;
+  border: 1px solid #ccc;
+  font-size: 1rem;
+}
+
+.createFarmBtn {
+  margin-top: 1rem;
+  border-radius: 0.5rem;
+  background-color: #d1c4e9;
+  padding: 0.75rem 1.5rem;
+  font-weight: bold;
+  cursor: pointer;
+  border: none;
+}
+
+.formMessage {
+  margin-top: 0.75rem;
+  text-align: center;
+  font-weight: 500;
+  color: #2e7d32;
+}
+.weatherWidgetCard {
+  background: linear-gradient(135deg, #fff3e0, #ffffff);
+  border-radius: 0.75rem;
+  padding: 1.25rem 1.5rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  transition: all 0.3s ease-in-out;
+  margin: 0.75rem;
+}
+
+.weatherWidgetCard:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+}
+
+.weatherWidgetHeading {
+  font-size: 1.5rem;
+  color: #ef6c00;
+  margin-bottom: 1rem;
+  text-align: center;
+}
+.weatherStatus {
+  font-size: 1rem;
+  padding: 1rem;
+  color: #444;
+  text-align: center;
+}
+/* Default - portrait */
+.whatsappContainer {
+  width: 100%;
+  margin-top: 5%;
+}
+
+.whatsapp-card {
+  background-color: white;
+  border-radius: 1rem;
+  padding: 1.5rem;
+  width: 100%;
+}
+
+.whatsapp-button {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  padding: 0.75rem 1rem;
+  text-align: center;
+  background-color: #25D366;
+  color: white;
+  font-weight: 600;
+  border: none;
+  border-radius: 0.5rem;
+  text-decoration: none;
+  box-sizing: border-box;
+  transition: background-color 0.2s ease-in-out;
+}
+
+.whatsapp-button:hover {
+  background-color: #1ebe5d;
+}
+
+.errorText {
+  color: red;
+}
+.farmList {
+  background: linear-gradient(135deg, #fce4ec, #ffffff);
+  border-radius: 0.75rem;
+  padding: 1.5rem;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.05);
+  margin: 0.75rem;
+  transition: all 0.3s ease-in-out;
+}
+
+.farmListHeading {
+  font-size: 1.6rem;
+  color: #c2185b;
+  text-align: center;
+  margin-bottom: 1rem;
+}
+
+.farmCard {
+  background-color: #fff0f5;
+  border: 1px solid #f8bbd0;
+  border-radius: 0.5rem;
+  padding: 1rem;
+  margin-bottom: 1.25rem;
+  transition: background-color 0.3s ease;
+}
+
+.farmCard:hover {
+  background-color: #fce4ec;
+}
+
+.farmStatus {
+  text-align: center;
+  font-size: 1rem;
+  color: #444;
+}
+
+.errorText {
+  color: red;
+}
+.uploadImage {
+  background-color: #d0f0c0;
+  border-radius: 0.5rem;
+  padding: 1.5rem;
+  margin: 2rem auto;
+  max-width: 700px;
+}
+
+.analysis {
+  background: #ffffff;
+  border-radius: 0.75rem;
+  padding: 1.5rem;
+  margin-top: 2rem;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.05);
+}
+
+.analysisResult {
+  padding: 1rem 0;
+  border-bottom: 1px solid #ccc;
+}
+
+.uploadLink {
+  color: #006400;
+  text-decoration: underline;
+  font-weight: 500;
+}
+
+.analyses {
+  font-size: 1rem;
+  font-weight: bold;
+  color: #2e7d32;
+  text-align: center;
+}
+
+.errorText {
+  color: red;
+  font-weight: bold;
+}
+.droneDataSection {
+  padding: 2rem;
+  background: linear-gradient(145deg, #f9fbe7, #ffffff);
+  border-radius: 0.75rem;
+  max-width: 900px;
+  margin: 2rem auto;
+}
+
+.droneDataHeading {
+  text-align: center;
+  font-size: 2rem;
+  font-weight: bold;
+  color: #33691e;
+  margin-bottom: 2rem;
+}
+
+.droneCard {
+  background: #ffffff;
+  border: 2px solid #aed581;
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+  border-radius: 0.75rem;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.05);
+}
+
+.droneImage {
+  width: 100%;
+  height: auto;
+  object-fit: cover;
+  border-radius: 0.5rem;
+  margin: 1rem 0;
+}
+
+.droneEmptyText {
+  text-align: center;
+  font-style: italic;
+  color: #888;
+  font-size: 1rem;
+}
+.signupSection {
+  background: linear-gradient(145deg, #e8f5e9, #ffffff);
+  padding: 3rem;
+  border-radius: 0.75rem;
+  width: 40%;
+  margin: 3rem auto;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.05);
+}
+
+.signupHeading {
+  font-size: 2.25rem;
+  text-align: center;
+  color: #1b5e20;
+  margin-bottom: 2rem;
+}
+
+.signupForm {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.signupBtn {
+  background-color: silver;
+  border: none;
+  border-radius: 0.5rem;
+  padding: 1rem;
+  font-size: 1rem;
+  color: white;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+.signupRedirect {
+  background-color: lightgreen;
+  border: none;
+  border-radius: 0.5rem;
+  padding: 1rem;
+  font-size: 1rem;
+  color: white;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  position: relative;
+  left: 15%;
+}
+
+.signupBtn:hover {
+  background-color: #2e7d32;
+}
+
+.errorText {
+  color: crimson;
+  text-align: center;
+  font-size: 1rem;
+}
+.loginSection {
+  background: linear-gradient(145deg, #e0f2fe, #ffffff);
+  padding: 3rem;
+  border-radius: 0.75rem;
+  width: 40%;
+  margin: 3rem auto;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.05);
+}
+
+.loginHeading {
+  font-size: 2rem;
+  text-align: center;
+  color: #1e40af;
+  margin-bottom: 2rem;
+}
+
+.loginForm {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+.loginBtn {
+  background-color: #2563eb;
+  border: none;
+  border-radius: 0.5rem;
+  padding: 1rem;
+  font-size: 1rem;
+  color: white;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.loginBtn:hover {
+  background-color: #1e40af;
+}
+
+.signupRedirect {
+  text-align: center;
+  font-size: 1rem;
+  margin-top: 1.25rem;
+}
+.signupRedirec {
+  background-color: silver;
+  border: none;
+  border-radius: 0.5rem;
+  padding: 1rem;
+  font-size: 1rem;
+  color: black;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s ease;text-align: center;
+
+}
+.signupLink {
+  color: #1d4ed8;
+  font-weight: bold;
+}
+.links {
+  color: white;
+}
+
+
+.signupLink:hover {
+  text-decoration: underline;
+}
+.loginToggleContainer {
+  width: 60%;
+  margin: 2rem auto;
+  text-align: center;
+}
+.loginToggleContaine {
+  width: 100%;
+  margin: 2rem auto;
+  text-align: center;
+}
+
+.loginToggle {
+  background-color: silver;
+  padding: 1rem;
+  font-size: 1.25rem;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  font-weight: bold;
+  transition: background-color 0.3s ease;
+}
+
+.loginToggle:hover {
+  background-color: #8ed6a7;
+}
+.chatToggle {
+  border-radius: 0.5rem;
+  cursor: pointer;
+  font-weight: bold;
+  transition: background-color 0.3s ease;
+  border-radius: 50px;
+  }
+  
+.loginToggleCard {
+  margin-top: 1.5rem;
+  background-color: white;
+  padding: 2rem;
+  border-radius: 1rem;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.1);
+}
+.signupToggleContainer {
+  width: 60%;
+  margin: 2rem auto;
+  text-align: center;
+}
+
+.signupToggle {
+  background-color: silver;
+  padding: 1rem;
+  font-size: 1.25rem;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  font-weight: bold;
+  transition: background-color 0.3s ease;
+}
+
+.signupToggle:hover {
+  background-color: #8ed6a7;
+}
+
+.signupToggleCard {
+  margin-top: 1.5rem;
+  background-color: white;
+  padding: 2rem;
+  border-radius: 1rem;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.1);
+}
+.droneFeedContainer {
+  padding: 2rem;
+  background: #f0f4c3;
+  border-radius: 1rem;
+  box-shadow: 0 6px 15px rgba(0,0,0,0.08);
+  width: 80%;
+  margin: 2rem auto;
+  text-align: center;
+}
+
+.droneFeedHeading {
+  font-size: 2rem;
+  color: #33691e;
+  margin-bottom: 1.5rem;
+}
+
+.droneFeedCard {
+  background: #fff;
+  border: 2px solid #c5e1a5;
+  border-radius: 0.75rem;
+  padding: 1.5rem;
+}
+
+.droneStatusText {
+  font-size: 1.25rem;
+  color: #2e7d32;
+}
+
+.droneCoordText {
+  font-size: 1.1rem;
+  color: #555;
+}
+
+.droneImage {
+  margin-top: 1rem;
+  width: 500px;
+  height: 300px;
+  object-fit: cover;
+  border-radius: 0.5rem;
+}
+
+.droneNoDataText {
+  font-size: 1rem;
+  color: #999;
+}
+.historyContainer {
+  padding: 2rem;
+  background-color: #f1f8e9;
+  border-radius: 1rem;
+  box-shadow: 0 6px 15px rgba(0,0,0,0.1);
+  max-width: 80%;
+  margin: 2rem auto;
+}
+
+.historyHeading {
+  font-size: 2rem;
+  font-weight: 600;
+  text-align: center;
+  margin-bottom: 2rem;
+  color: #1b5e20;
+}
+
+.historyList {
+  list-style: none;
+  padding: 0;
+}
+
+.historyItem {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  padding: 1rem;
+  margin-bottom: 1.5rem;
+  background: #ffffff;
+  border: 2px solid #aed581;
+  border-radius: 0.75rem;
+}
+
+.historyImage {
+  border-radius: 0.5rem;
+  width: 150px;
+  height: 150px;
+  object-fit: cover;
+}
+
+.historyText {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.historyTimestamp {
+  font-size: 0.95rem;
+  color: #555;
+}
+.weatherHistoryContainer {
+  margin-top: 2rem;
+  padding: 2rem;
+  background: #e8f5e9;
+  border-radius: 1rem;
+  border: 2px solid #a5d6a7;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
+  max-width: 80%;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.weatherHistoryTitle {
+  font-size: 1.75rem;
+  font-weight: 600;
+  color: #2e7d32;
+  margin-bottom: 2rem;
+  text-align: center;
+}
+
+.weatherHistoryList {
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+
+.weatherHistoryItem {
+  font-size: 1.1rem;
+  padding: 0.75rem 0;
+  border-bottom: 1px solid #c8e6c9;
+  color: #33691e;
+}
+
+.weatherLoading {
+  font-size: 1.25rem;
+  color: #999;
+  text-align: center;
+}
+
+.errorText {
+  color: red;
+  font-size: 0.9rem;
+  text-align: center;
+}
+  .aboutContainer {
+  background: linear-gradient(135deg, #fff3e0, #ffffff);
+  color: white;
+  border-radius: 0.75rem;
+  padding: 1rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  transition: all 0.3s ease-in-out;
+  margin: 0.5rem;
+  }
+
+  .row {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    gap: 3rem;
+  }
+
+  .col-md-6 {
+    flex: 1;
+    padding: 1rem;
+  }
+
+  .aboutText {
+    font-size: 1.15rem;
+    position: relative;
+    left: 10%;
+  }
+
+  .aboutTitle {
+    font-size: 2.2rem;
+    text-align: center;
+    margin-bottom: 2rem;
+  }
+  .btnabt {
+    color: wheat;
+  }
+  .whatsapplogo {
+    border-radius: 10px;
+  }
+.weather-chart-heading {
+  font-weight: 600;
+  margin-bottom: 1rem;
+  text-align: center;
+}
+
+.serviceCard {
+  background-color: #f5fdf7;
+  border: 1px solid #d0ebd5;
+  border-radius: 8px;
+  padding: 20px;
+  transition: transform 0.2s;
+  margin-bottom: 10px;
+  margin-left: 5px;
+  width: 100%;
+  }
+.weather-chart-status {
+  text-align: center;
+  padding: 0.75rem;
+  color: #6b7280;
+}
+
+.weather-chart-status.error {
+  color: #dc2626;
+}
+
+.weather-chart-wrapper {
+  width: 100%;
+}
+  .aboutList {
+    font-size: 1.05rem;
+    position: relative;
+    left: 15%;
+  }
+    .landscape\:text-base {
+    font-size: 1rem;
+  }
+  .landscape\:text-xl {
+    font-size: 1.25rem;
+  }
+  .landscape\:pt-2 {
+    padding-top: 0.5rem;
+  }
+  .landscape\:h-\[400px\] {
+    height: 400px;
+  }
+    .uploadCard {
+    flex-direction: row;
+    gap: 1rem;
+    align-items: center;
+  }
+
+  .uploadImageWrapper {
+    width: 200px;
+    height: 150px;
+    flex-shrink: 0;
+  }
+
+  .uploadDetails {
+    flex: 1;
+  }
+}
+
+
+
+@media screen and (max-width: 768px) {
+  .heroContent {
+    gap: 1.5rem;
+  }
+    .layoutMain {
+    max-width: 80%;
+    padding: 2rem;
+  }
+
+  .layoutBody {
+    background-color: cyan;
+  }
+    .contactTitle {
+    font-size: 1.5rem;
+  }
+
+  .contactInput {
+    font-size: 0.95rem;
+  }
+
+  .btn {
+    font-size: 1rem;
+  }
+    .servicesTitle {
+    font-size: 1.5rem;
+  }
+
+}
+
+.weatherWidgetCard {
+  padding: 1rem;
+  background: white;
+  border-radius: 1rem;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  max-width: 100%;
+  margin: 1rem auto;
+}
+.uploadList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  gap: 1rem;
+}
+
+.serviceTitle {
+  color: #388e3c;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+.serviceDescription {
+  font-size: 1rem;
+  color: #444;
+}
+
+.uploadCard {
+  display: flex;
+  flex-direction: column;
+  background: #fdfdfd;
+  border-radius: 1rem;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  padding: 1rem;
+  transition: transform 0.2s;
+}
+
+.uploadCard:hover {
+  transform: scale(1.01);
+}
+
+.uploadImageWrapper {
+  position: relative;
+  width: 100%;
+  height: 200px;
+  margin-bottom: 1rem;
+  border-radius: 0.75rem;
+  overflow: hidden;
+}
+
+.uploadImage {
+  object-fit: cover;
+  border-radius: 0.75rem;
+}
+
+.uploadDetails p {
+  margin-bottom: 0.5rem;
+  font-size: 0.95rem;
+}
+
+
+/* === Observer Dashboard Styles === */
+
+.observer-container {
+  min-height: 100vh;
+  padding: 2rem;
+  background-color: #ffffff;
+  color: #1f2937;
+  font-family: 'Segoe UI', sans-serif;
+  border-radius: 15px;
+  position: relative;
+  top: 40px;
+}
+
+@media (prefers-color-scheme: dark) {
+  .observer-container {
+    background-color: #111827;
+    color: #f3f4f6;
+  }
+}
+
+.observer-title {
+  font-size: 2.5rem;
+  text-align: center;
+  margin-bottom: 2rem;
+  color: #065f46;
+}
+
+@media (prefers-color-scheme: dark) {
+  .observer-title {
+    color: #6ee7b7;
+  }
+}
+
+.observer-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+  margin-bottom: 2.5rem;
+}
+
+@media screen and (min-width: 768px) {
+  .observer-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+.stat-card {
+  background-color: #d1fae5;
+  padding: 1.5rem;
+  text-align: center;
+  border-radius: 0.75rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  transition: transform 0.2s ease;
+}
+
+.stat-card:hover {
+  transform: translateY(-2px);
+}
+
+@media (prefers-color-scheme: dark) {
+  .stat-card {
+    background-color: #065f46;
+    color: #f0fdf4;
+  }
+}
+
+.stat-value {
+  font-size: 1.75rem;
+  font-weight: 600;
+  margin-bottom: 0.25rem;
+}
+
+.stat-label {
+  font-size: 1rem;
+  font-weight: 500;
+}
+
+.observer-section {
+  margin-bottom: 3rem;
+}
+
+.observer-subtitle {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+  color: #047857;
+}
+
+@media (prefers-color-scheme: dark) {
+  .observer-subtitle {
+    color: #6ee7b7;
+  }
+}
+
+.observer-chart-box {
+  background-color: #ecfdf5;
+  border-radius: 1rem;
+  padding: 1rem;
+  height: 22rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  overflow-x: auto;
+}
+
+@media (prefers-color-scheme: dark) {
+  .observer-chart-box {
+    background-color: #064e3b;
+  }
+}
+
+.observer-diagnoses {
+  background-color: #d1fae5;
+  padding: 1rem;
+  border-radius: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+@media (prefers-color-scheme: dark) {
+  .observer-diagnoses {
+    background-color: #065f46;
+  }
+}
+
+.diagnosis-card {
+  background-color: #ffffff;
+  padding: 0.75rem;
+  border-radius: 0.5rem;
+  box-shadow: 0 1px 5px rgba(0, 0, 0, 0.05);
+  transition: background-color 0.3s ease;
+}
+
+@media (prefers-color-scheme: dark) {
+  .diagnosis-card {
+    background-color: #1f2937;
+    color: #f9fafb;
+  }
+}
+
+.diagnosis-meta {
+  font-size: 0.875rem;
+  margin-bottom: 0.25rem;
+  font-weight: 500;
+}
+
+.diagnosis-text {
+  font-size: 0.9rem;
+  line-height: 1.4;
+}
+
+.observer-error {
+  padding: 1rem;
+  color: #dc2626;
+  font-weight: bold;
+  text-align: center;
+}
+
+.observer-loading {
+  padding: 1rem;
+  font-style: italic;
+  text-align: center;
+}
+
+.observer-empty {
+  font-size: 0.95rem;
+  text-align: center;
+  color: #6b7280;
+  padding: 1rem;
+}
+.chart-toggle {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: flex-end;
+  margin-bottom: 1rem;
+}
+
+.chart-toggle button {
+  padding: 0.4rem 1rem;
+  border: 1px solid #065f46;
+  background: white;
+  color: #065f46;
+  font-weight: 500;
+  border-radius: 0.375rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.chart-toggle button:hover {
+  background-color: #ecfdf5;
+}
+
+.chart-toggle button.active {
+  background-color: #065f46;
+  color: white;
+}
+/* Upload page background and layout */
+.uploadImage {
+  min-height: 100vh;
+  background-size: cover;
+  background-position: center;
+  padding: 2rem 1rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  color: white;
+  backdrop-filter: blur(3px);
+}
+
+/* Headings */
+.analyses {
+  font-size: 1rem;
+  font-weight: 600;
+  text-align: center;
+  margin-bottom: 0;
+}
+
+/* Form styling */
+form {
+  width: 100%;
+  max-width: 500px;
+  margin: 1.5rem auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* Input file field */
+.formInput {
+  background: white;
+  color: black;
+  border: 1px solid #ccc;
+  border-radius: 0.5rem;
+  padding: 0.7rem;
+  width: 100%;
+  margin-bottom: 1rem;
+  font-size: 0.95rem;
+}
+
+/* Upload button */
+.createFarmBtn {
+  background-color: #25D366;
+  color: white;
+  padding: 0.8rem 2rem;
+  border: none;
+  border-radius: 0.5rem;
+  font-weight: bold;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  width: 100%;
+}
+.createFarmBtn:hover {
+  background-color: #1ebe5d;
+}
+
+/* Error message */
+.errorText {
+  color: #ff6b6b;
+  font-weight: bold;
+  margin-top: 1rem;
+}
+
+/* Results box */
+.analysis {
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(4px);
+  border-radius: 1rem;
+  padding: 1.5rem;
+  margin-top: 2rem;
+  width: 100%;
+  max-width: 600px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+}
+
+/* Results heading */
+.analysis h3 {
+  text-align: center;
+  font-size: 1.25rem;
+  margin-bottom: 1rem;
+}
+
+/* Each result */
+.analysisResult {
+  padding: 1rem;
+  margin-bottom: 1rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.2);
+  animation: fadeIn 0.6s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Link to cloudinary */
+.uploadLink {
+  color: #a3ffb7;
+  text-decoration: underline;
+}
+.uploadLink:hover {
+  color: #ffffff;
+}
+.webContainer {
+  margin-top: 15%;
+}
+
+/* Responsive enhancements */
+@media (orientation: landscape) {
+  .uploadImage {
+    padding: 4rem;
+    align-items: flex-start;
+  }
+
+  form {
+    align-items: flex-start;
+  }
+}
+
+/* Team page styles */
+
+.team-container {
+  padding: 2rem;
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.team-title {
+  text-align: center;
+  font-size: 2rem;
+  margin-bottom: 2rem;
+}
+
+.team-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.team-member {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  margin-bottom: 10px;
+}
+
+.profile-image {
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.name {
+  font-size: 1.5rem;
+  margin-top: 1rem;
+}
+
+.role {
+  font-weight: bold;
+  color: white;
+  margin-bottom: 0.5rem;
+}
+
+.desc {
+  max-width: 300px;
+  font-size: 0.95rem;
+  color: white;
+}
+
+/* Responsive for landscape or desktop */
+@media (min-width: 640px) {
+  .team-grid {
+    flex-direction: row;
+    justify-content: space-around;
+  }
+
+  .desc {
+    max-width: 350px;
+  }
+}
+.team-container {
+  padding: 2rem;
+  max-width: 1200px;
+  margin: auto;
+}
+
+.team-member {
+  background: rgb(120, 219, 120);
+  border-radius: 12px;
+  padding: 1.5rem;
+  text-align: center;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+}
+
+.profile-image {
+  border-radius: 9999px;
+  object-fit: cover;
+}
+
+.name {
+  font-size: 1.5rem;
+  font-weight: bold;
+  margin-top: 1rem;
+}
+
+.role {
+  font-size: 1rem;
+  color: white;
+  margin: 0.5rem 0;
+}
+
+.desc {
+  font-size: 0.95rem;
+  line-height: 1.6;
+  margin-bottom: 1rem;
+}
+
+.contact-links {
+  list-style: none;
+  padding: 0;
+  margin-top: 1rem;
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.contact-links li a {
+  font-size: 0.9rem;
+  text-decoration: none;
+}
+
+.email-btn {
+  background-color: blue;
+  color: white;
+  padding: 0.4rem 1rem;
+  border-radius: 6px;
+  font-weight: 500;
+  text-decoration: none;
+  transition: background-color 0.2s ease;
+}
+
+.email-btn:hover {
+  background-color: #005bb5;
+
+
+
+
+  /* Chat container */
+
+  .chatContainer {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    max-width: 600px;
+    width: 95%;
+    margin: 2rem auto;
+    padding: 1rem;
+    background: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  }
+
+  /* Chat history */
+  .chatHistory {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    max-height: 400px;
+    overflow-y: auto;
+    padding: 1rem;
+    border-radius: 12px;
+    background: #f9f9f9;
+    scroll-behavior: smooth;
+  }
+
+  /* Message bubbles */
+  .chatHistory > div {
+    display: flex;
+  }
+  .chatHistory > div.farmer {
+    justify-content: flex-end;
+  }
+  .chatHistory > div.ai {
+    justify-content: flex-start;
+  }
+  .chatBubble {
+    padding: 10px 14px;
+    border-radius: 20px;
+    max-width: 70%;
+    word-break: break-word;
+    box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1);
+    position: relative;
+  }
+  .chatBubble.farmer {
+    background: #4f9cf7;
+    color: white;
+    border-top-left-radius: 20px;
+    border-top-right-radius: 20px;
+    border-bottom-left-radius: 20px;
+    border-bottom-right-radius: 0px;
+  }
+  .chatBubble.farmer {
+    background: #e5e5ea;
+    color: black;
+    border-top-left-radius: 0;
+    border-top-right-radius: 20px;
+    border-bottom-left-radius: 20px;
+    border-bottom-right-radius: 20px;
+  }
+
+  /* Chat form styling */
+  .chatContainer .chatForm {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+  .chatContainer .chatform input[type="text"] {
+    flex: 1;
+    padding: 10px 14px;
+    border-radius: 20px;
+    border: 1px solid #ccc;
+    outline: none;
+    transition: border 0.2s ease;
+  }
+  .chatContainer .chatForm input[type="text"]:focus {
+    border-color: #4f9cf7;
+  }
+  .chatContainer .chatform input[type="file"] {
+    border: none;
+    cursor: pointer;
+  }
+  .chatContainer .chatform button {
+    padding: 10px 16px;
+    border-radius: 20px;
+    border: none;
+    background: #4f9cf7;
+    color: white;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.2s ease;
+  }
+  .chatContainer .chatform button:disabled {
+    cursor: not-allowed;
+    opacity: 0.6;    
+  }
+
+  /* Text inside bubbles */
+  .chatContainer .chatBubble p {
+    margin: 0.2rem 0;
+    font-size: 0.95rem;
+  }
+  .chatContainer .chatBubble a {
+    color: #4f9cf7;
+    text-decoration: underline;
+  }
+  .chatContainer .chatBubble strong {
+    font-weight: 600;
+  }
+  
+  /* Scrollbar for chat */
+  .chatContainer .chatHistory::-webkit-scrollbar {
+    width: 6px;
+  }
+  .chatContainer .chatHistory::-webkit-scrollbar-thumb {
+    background-color: rgba(0,0,0,0.2);
+    border-radius: 3px;
+  }
+ 
+
+  /* Responsive */
+  @media (max-width: 640px) {
+    .chatContainer {
+      width: 95%;
+      padding: 0.75rem;
+    }
+    .chatContainer .chatBubble {
+      max-width: 85%;
+      font-size: 0.9rem;
+    }
+    .chatContainer .chatForm {
+      flex-direction: column;
+    }
+    .chatContainer .chatForm input[type="text"],
+    .chatContainer .chatForm input[type="file"],
+    .chatContainer .chatForm button {
+      width: 100%;
+    }
+
+  }
+
+
+
+
+
+}
+ /* Footer styles */
+.footer {
+  background-color: gray; /* Light gray or use your custom bg */
+  padding: 2rem 1rem;
+  text-align: center;
+  border-top: 1px solid #dee2e6;
+  margin-top: 3rem;
+}
+

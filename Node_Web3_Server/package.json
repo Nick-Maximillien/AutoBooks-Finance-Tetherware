@@ -1,0 +1,21 @@
+{
+  "name": "multichain-relayer",
+  "version": "1.0.0",
+  "description": "Web3 Relayer for ERC-4337 Account Abstraction",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "nodemon index.js"
+  },
+  "dependencies": {
+    "body-parser": "^2.2.0",
+    "cors": "^2.8.5",
+    "crypto-js": "^4.2.0",
+    "dotenv": "^17.2.3",
+    "ethers": "^6.15.0",
+    "express": "^5.1.0",
+    "node-fetch": "^2.7.0",
+    "thirdweb": "^5.119.1"
+  }
+}
