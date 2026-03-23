@@ -11,7 +11,7 @@ The Frontend-UI provides:
 - **Transaction Dashboard**: Real-time visibility into posted transactions with filtering and search capabilities
 - **Financial Reports**: Dynamic balance sheet, profit & loss, and cash flow statement generation
 - **Blockchain Treasury Monitoring**: Real-time view of on-chain treasury positions and transaction status
-- **Conversational Finance Interface**: RAG-augmented AI assistant for financial queries
+- **Multimodal Finance Interface**:  AI assistant for financial queries
 
 ## Architecture
 
@@ -43,19 +43,16 @@ src/
 ├── components/
 │   ├── ui_navigator/            # Vision-based ingestion interface
 │   ├── Accounting.tsx           # Balance sheet & ledger views
-│   ├── FarmForm.tsx             # Entity management
 │   ├── CreateProfile.tsx        # User onboarding
 │   ├── FinancialPosition.tsx    # Real-time P&L and position data
 │   ├── ExportFinancialsButton.tsx # Report export (PDF, Excel)
 │   ├── Chat.tsx                 # RAG conversational interface
-│   ├── DroneData.tsx            # IoT sensor integration (optional)
 │   └── [other components]/
 ├── context/
 │   ├── AuthContext.tsx          # JWT authentication state
 │   └── [other contexts]/
 ├── services/
 │   ├── api.ts                   # IFRS_Backend API client
-│   ├── web3.ts                  # Blockchain integration (ethers.js)
 │   └── [other services]/
 ├── lib/
 │   ├── api/                     # HTTP utilities and interceptors
@@ -67,7 +64,7 @@ src/
 
 ## Key Features
 
-### 1. Vision-Based Document Ingestion (UI Navigator)
+### 1. Multimodal (text, audio, vision) Document Ingestion (UI Navigator)
 
 The UI Navigator provides intelligent document processing through a multi-stage pipeline:
 
@@ -150,7 +147,6 @@ Chat-based interface with RAG capabilities:
 | Styling           | Tailwind CSS        | 4.0.14    | Utility-first CSS                   |
 | HTTP Client       | axios               | 1.10.0    | API requests                        |
 | Web3              | ethers.js           | 6.15.0    | Blockchain interactions            |
-| Blockchain Auth   | @dfinity/auth-client| 3.2.7     | Internet Computer integration       |
 | Charts            | recharts            | 3.1.0     | Financial data visualization        |
 | Drag & Drop       | @hello-pangea/dnd   | 18.0.1    | UI reordering                       |
 | Icons             | react-icons         | 5.5.0     | UI iconography                      |
@@ -237,25 +233,6 @@ const response = await fetch('/api/transactions', {
 });
 ```
 
-### Web3 Integration
-
-Blockchain interactions use ethers.js v6:
-
-```typescript
-// Example: Submit UserOperation to bundler
-const userOp = {
-  sender: treasuryAddress,
-  nonce: nonce,
-  initCode: '0x',
-  callData: encodeCall(transferData),
-  accountGasLimits: encodePacked(['uint128', 'uint128'], [gasLimit, verificationGasLimit]),
-  preVerificationGas: preVerificationGas,
-  gasFees: encodePacked(['uint128', 'uint128'], [maxPriorityFeePerGas, maxFeePerGas]),
-  paymasterAndData: '0x',
-  signature: signatureFromLocalTetherware
-};
-
-const bundlerResponse = await bundlerClient.sendUserOperation(userOp);
 ```
 
 ## Development Workflow
