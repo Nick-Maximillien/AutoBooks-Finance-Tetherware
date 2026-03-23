@@ -1,10 +1,16 @@
 {
   "version": 1,
+  "metadata": {
+    "projectId": "autobooks-finance-tetherware",
+    "lastSyncedAt": "2026-03-23T10:00:00.000Z",
+    "autonomyModule": "openclaw-while-i-sleep"
+  },
   "jobs": [
     {
-      "id": "2c388700-00e7-4502-9fb1-f9dd1d5a1db4",
+      "id": "heartbeat-claware",
       "agentId": "django-brain",
-      "name": "Claware-Heartbeat",
+      "name": "Claware-Monitor-Heartbeat",
+      "description": "5-minute heartbeat to detect pending signatures",
       "enabled": true,
       "createdAtMs": 1773878456043,
       "updatedAtMs": 1774136047305,
@@ -17,24 +23,193 @@
       "wakeMode": "now",
       "payload": {
         "kind": "agentTurn",
-        "message": "1. Use web_fetch on http://127.0.0.1:8000/api/documents/. 2. If you see ANY item in the list, use the 'nodes' tool with action='notify' and message='Claware Enclave: Pending Signature Found'. 3. If the list is empty [], stop immediately. DO NOT fetch the same URL twice."
+        "message": "Check for pending signatures at http://127.0.0.1:8000/api/documents/. If found, trigger wdk-enclave agent to prepare signing payload. Report status via nodes tool."
       },
       "delivery": {
         "mode": "none",
         "channel": "last"
+      }
+    },
+    {
+      "id": "recurring-liabilities-sweeper",
+      "agentId": "django-brain",
+      "name": "Recurring Liabilities Background Sweeper",
+      "description": "2:00 AM - Auto-sign recurring corporate liabilities within treasury limits",
+      "enabled": true,
+      "isPolicyEnforced": true,
+      "schedule": {
+        "kind": "cron",
+        "expression": "0 2 * * *",
+        "timezone": "UTC"
       },
-      "state": {
-        "nextRunAtMs": 1774139647305,
-        "lastRunAtMs": 1774136026010,
-        "lastRunStatus": "error",
-        "lastStatus": "error",
-        "lastDurationMs": 21295,
-        "lastDeliveryStatus": "not-delivered",
-        "consecutiveErrors": 5,
-        "lastDelivered": false,
-        "lastErrorReason": "timeout",
-        "lastDeliveryError": "LLM request timed out.",
-        "lastError": "LLM request timed out."
+      "sessionTarget": "isolated",
+      "wakeMode": "scheduled",
+      "payload": {
+        "kind": "agentTurn",
+        "action": "process_recurring_liabilities",
+        "message": "Execute While I Sleep cycle: 1. Query IFRS_Backend for recurring bills due within 24 hours. 2. Validate each against treasury policies (daily_recurring_liabilities limit: $50,000). 3. For each valid bill, request wdk-enclave to sign via /api/sign. 4. Relay signed UserOperation to Node Web3 Server. 5. Log all transactions to audit trail.",
+        "context": {
+          "policyKey": "autonomy.recurringLiabilities",
+          "maxDailyAmount": 50000,
+          "currency": "USD",
+          "autoSignEnabled": true
+        }
+      },
+      "delivery": {
+        "mode": "slack",
+        "channel": "finance-bot-alerts"
+      }
+    },
+    {
+      "id": "payroll-scheduler",
+      "agentId": "django-brain",
+      "name": "Bi-Weekly Payroll Processor",
+      "description": "Every other Friday at 2:00 PM UTC - Batch sign salary disbursements",
+      "enabled": true,
+      "isPolicyEnforced": true,
+      "schedule": {
+        "kind": "cron",
+        "expression": "0 14 * * FRI",
+        "timezone": "UTC",
+        "advanced": {
+          "everyOtherWeek": true
+        }
+      },
+      "sessionTarget": "isolated",
+      "wakeMode": "scheduled",
+      "payload": {
+        "kind": "agentTurn",
+        "action": "process_batch_payroll",
+        "message": "Execute payroll signing: 1. Query IFRS_Backend for EmployeeSalaryLine records marked as 'pending_disbursement'. 2. Aggregate into single batch_payroll intent. 3. Validate total against policy limit ($100,000 per cycle). 4. Request wdk-enclave to sign batch UserOperation. 5. Relay to Node Web3 Server for bundling. 6. Update employee records with tx hash.",
+        "context": {
+          "policyKey": "treasury.limits.payroll_batch",
+          "maxPerCycle": 100000,
+          "scheduleType": "bi_weekly"
+        }
+      },
+      "delivery": {
+        "mode": "slack",
+        "channel": "payroll-automation"
+      }
+    },
+    {
+      "id": "tax-escrow-checker",
+      "agentId": "django-brain",
+      "name": "Tax Accrual Escrow Monitor",
+      "description": "Monthly tax compliance check - Fund escrow when thresholds reached",
+      "enabled": true,
+      "isPolicyEnforced": true,
+      "schedule": {
+        "kind": "cron",
+        "expression": "0 3 1 * *",
+        "timezone": "UTC"
+      },
+      "sessionTarget": "isolated",
+      "wakeMode": "scheduled",
+      "payload": {
+        "kind": "agentTurn",
+        "action": "process_tax_escrow",
+        "message": "Execute tax escrow funding: 1. Calculate accumulated tax accrual from latest FinancialPeriod. 2. If exceeds threshold (e.g., $10,000 USDT equivalent), request wdk-enclave to sign fund_tax_escrow intent. 3. Validate against policy (maxPerDeposit: $75,000). 4. Relay to Node Web3 Server. 5. Record escrow deposit in ledger with reference to tax code.",
+        "context": {
+          "policyKey": "treasury.limits.tax_escrow",
+          "maxPerDeposit": 75000,
+          "requiresDocumentation": true
+        }
+      },
+      "delivery": {
+        "mode": "slack",
+        "channel": "tax-automation"
+      }
+    },
+    {
+      "id": "yield-deployment-evaluator",
+      "agentId": "django-brain",
+      "name": "Surplus Cash Yield Deployment",
+      "description": "Weekly surplus cash deployment to yield vaults",
+      "enabled": true,
+      "isPolicyEnforced": true,
+      "schedule": {
+        "kind": "cron",
+        "expression": "0 4 * * MON",
+        "timezone": "UTC"
+      },
+      "sessionTarget": "isolated",
+      "wakeMode": "scheduled",
+      "payload": {
+        "kind": "agentTurn",
+        "action": "process_yield_deployment",
+        "message": "Execute yield deployment: 1. Calculate current cash balance from IFRS Balance Sheet. 2. Apply minimum reserve ratio (25%). 3. If surplus > threshold, request wdk-enclave to sign deploy_yield intent. 4. Validate against policy (maxPerDeployment: $50,000). 5. Relay to Node Web3 Server for yield vault deposit. 6. Update cash flow forecasts.",
+        "context": {
+          "policyKey": "treasury.limits.yield_deployment",
+          "maxPerDeployment": 50000,
+          "minimumReserveRatio": 0.25
+        }
+      },
+      "delivery": {
+        "mode": "slack",
+        "channel": "treasury-optimization"
+      }
+    },
+    {
+      "id": "dividend-payout-scheduler",
+      "agentId": "django-brain",
+      "name": "Quarterly Shareholder Dividend Payout",
+      "description": "Q-end distribution of profits to shareholders",
+      "enabled": true,
+      "isPolicyEnforced": true,
+      "schedule": {
+        "kind": "cron",
+        "expression": "0 9 15 3,6,9,12 *",
+        "timezone": "UTC"
+      },
+      "sessionTarget": "isolated",
+      "wakeMode": "scheduled",
+      "payload": {
+        "kind": "agentTurn",
+        "action": "process_dividend_payout",
+        "message": "Execute dividend distribution: 1. Query latest FinancialPeriod for Net Income and Shareholder records. 2. Calculate pro-rata dividend per shareholder. 3. Aggregate into distribute_dividends intent. 4. Validate each transaction against vendor_settlement policy. 5. Request wdk-enclave to sign batch UserOperation. 6. Relay to Node Web3 Server. 7. Record dividend distributions in equity section of ledger.",
+        "context": {
+          "policyKey": "treasury.limits.vendor_settlement",
+          "scheduleType": "quarterly"
+        }
+      },
+      "delivery": {
+        "mode": "slack",
+        "channel": "shareholder-relations"
+      }
+    },
+    {
+      "id": "policy-compliance-audit",
+      "agentId": "django-brain",
+      "name": "Daily Treasury Policy Compliance Audit",
+      "description": "6:00 AM UTC - Verify all transactions comply with deterministic limits",
+      "enabled": true,
+      "isPolicyEnforced": true,
+      "schedule": {
+        "kind": "cron",
+        "expression": "0 6 * * *",
+        "timezone": "UTC"
+      },
+      "sessionTarget": "isolated",
+      "wakeMode": "scheduled",
+      "payload": {
+        "kind": "agentTurn",
+        "action": "audit_policy_compliance",
+        "message": "Execute compliance audit: 1. Query IFRS_Backend for all transactions from past 24 hours. 2. Cross-check each against treasury policies (daily_recurring_liabilities, vendor_settlement, payroll_batch, tax_escrow, yield_deployment limits). 3. Flag any violations for human review. 4. Generate compliance report. 5. Alert if any policy breaches detected.",
+        "context": {
+          "auditScope": "24_hours_prior",
+          "policiesChecked": [
+            "daily_recurring_liabilities",
+            "vendor_settlement",
+            "payroll_batch",
+            "tax_escrow",
+            "yield_deployment"
+          ]
+        }
+      },
+      "delivery": {
+        "mode": "slack",
+        "channel": "compliance-alerts"
       }
     }
   ]

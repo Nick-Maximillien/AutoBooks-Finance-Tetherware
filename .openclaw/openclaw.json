@@ -1,10 +1,12 @@
 {
   "meta": {
     "lastTouchedVersion": "2026.3.13",
-    "lastTouchedAt": "2026-03-19T00:22:47.971Z"
+    "lastTouchedAt": "2026-03-23T10:00:00.000Z",
+    "projectId": "autobooks-finance-tetherware",
+    "projectName": "AutoBooks Finance - TetherWare Enclave"
   },
   "wizard": {
-    "lastRunAt": "2026-03-18T23:57:01.409Z",
+    "lastRunAt": "2026-03-23T09:45:00.000Z",
     "lastRunVersion": "2026.3.13",
     "lastRunCommand": "doctor",
     "lastRunMode": "local"
@@ -14,26 +16,31 @@
       "vertex-bridge": {
         "provider": "custom",
         "mode": "token"
+      },
+      "wdk-signer": {
+        "provider": "tetherto",
+        "mode": "enclave",
+        "keystorePath": "C:\\Users\\zico\\Desktop\\tether\\AutoBooks-Finance-Tetherware\\Local_Tetherware\\.claware_keystore"
       }
     }
   },
   "models": {
-  "providers": {
-    "custom": {
-      "baseUrl": "http://localhost:11434/v1",
-      "models": [
-        {
-          "id": "gemini-2.5-flash",
-          "name": "Gemini 2.5 Flash"
-        }
-      ]
+    "providers": {
+      "custom": {
+        "baseUrl": "http://localhost:11434/v1",
+        "models": [
+          {
+            "id": "gemini-2.5-flash",
+            "name": "Gemini 2.5 Flash"
+          }
+        ]
+      }
     }
-  }
-},
+  },
   "agents": {
     "defaults": {
       "model": "custom/gemini-2.5-flash",
-      "workspace": "C:\\Users\\hp\\.openclaw\\workspace",
+      "workspace": "C:\\Users\\zico\\.openclaw\\workspace",
       "compaction": {
         "mode": "safeguard"
       }
@@ -42,7 +49,26 @@
       {
         "id": "django-brain",
         "name": "Django CFO Proxy",
-        "model": "custom/gemini-2.5-flash"
+        "model": "custom/gemini-2.5-flash",
+        "role": "financial-orchestrator",
+        "capabilities": [
+          "analyze_ledger",
+          "generate_payloads",
+          "route_intents",
+          "validate_policies"
+        ]
+      },
+      {
+        "id": "wdk-enclave",
+        "name": "WDK Deterministic Signer",
+        "role": "signing-engine",
+        "profile": "wdk-signer",
+        "keystore": ".claware_keystore",
+        "capabilities": [
+          "sign_user_operations",
+          "generate_smart_accounts",
+          "validate_signatures"
+        ]
       }
     ]
   },
@@ -54,9 +80,118 @@
       "fetch": {
         "enabled": true
       }
+    },
+    "signing": {
+      "enabled": true,
+      "backend": "wdk",
+      "enclave": "local_tetherware",
+      "keystorePath": "C:\\Users\\zico\\Desktop\\tether\\AutoBooks-Finance-Tetherware\\Local_Tetherware\\.claware_keystore"
+    },
+    "blockchain": {
+      "enabled": true,
+      "supportedChains": [
+        "ethereum-sepolia",
+        "base-sepolia",
+        "arbitrum-sepolia",
+        "polygon-amoy",
+        "optimism-sepolia",
+        "avalanche-fuji",
+        "celo-alfajores",
+        "linea-sepolia",
+        "scroll-sepolia",
+        "blast-sepolia"
+      ],
+      "relayServer": "https://node-web3-server.onrender.com"
     }
   },
-  "bindings": [],
+  "policies": {
+    "treasury": {
+      "deterministic": true,
+      "limits": {
+        "daily_recurring_liabilities": {
+          "threshold": 50000,
+          "currency": "USD",
+          "enforced": true
+        },
+        "vendor_settlement": {
+          "maxPerTransaction": 25000,
+          "reasonRequired": true,
+          "requiresApproval": false
+        },
+        "payroll_batch": {
+          "maxPerCycle": 100000,
+          "scheduleType": "bi_weekly",
+          "requiresApproval": false
+        },
+        "tax_escrow": {
+          "maxPerDeposit": 75000,
+          "requiresDocumentation": true
+        },
+        "yield_deployment": {
+          "maxPerDeployment": 50000,
+          "minimumReserveRatio": 0.25
+        }
+      }
+    },
+    "autonomy": {
+      "whileISleep": {
+        "enabled": true,
+        "backgroundSweeper": true,
+        "scheduleType": "cron",
+        "patterns": [
+          "0 2 * * *",
+          "0 14 * * *"
+        ],
+        "maxExecutionTime": 300
+      },
+      "recurringLiabilities": {
+        "enabled": true,
+        "autoSignEnabled": true,
+        "requiresHumanConfirmation": false,
+        "validityWindow": {
+          "validAfter": 0,
+          "validUntil": 86400
+        }
+      }
+    },
+    "blockchain": {
+      "supportedChains": [
+        "ethereum-sepolia",
+        "base-sepolia",
+        "arbitrum-sepolia",
+        "polygon-amoy",
+        "optimism-sepolia",
+        "avalanche-fuji",
+        "celo-alfajores",
+        "linea-sepolia",
+        "scroll-sepolia",
+        "blast-sepolia"
+      ],
+      "crossChainBridging": {
+        "enabled": false
+      },
+      "gasOptimization": {
+        "enabled": true,
+        "preferredGasPrice": "fast"
+      }
+    }
+  },
+  "bindings": [
+    {
+      "id": "django-to-wdk",
+      "source": "django-brain",
+      "target": "wdk-enclave",
+      "type": "payload-signing",
+      "contractPath": "/api/sign"
+    },
+    {
+      "id": "wdk-to-relayer",
+      "source": "wdk-enclave",
+      "target": "node-relayer",
+      "type": "user-operation-relay",
+      "endpoint": "https://node-web3-server.onrender.com"
+    }
+  ],
   "commands": {
     "native": "auto",
     "nativeSkills": "auto",
@@ -80,6 +215,12 @@
       "mode": "off",
       "resetOnExit": false
     }
+  },
+  "paths": {
+    "keystoreDir": "C:\\Users\\zico\\Desktop\\tether\\AutoBooks-Finance-Tetherware\\Local_Tetherware",
+    "backendDir": "C:\\Users\\zico\\Desktop\\tether\\AutoBooks-Finance-Tetherware\\IFRS_Backend",
+    "nodeServerDir": "C:\\Users\\zico\\Desktop\\tether\\AutoBooks-Finance-Tetherware\\Node_Web3_Server",
+    "frontendDir": "C:\\Users\\zico\\Desktop\\tether\\AutoBooks-Finance-Tetherware\\Frontend-UI"
   },
   "plugins": {
     "entries": {}
