@@ -1,0 +1,74 @@
+{
+  "name": "agrosight-ai",
+  "version": "0.1.0",
+  "author": "Nick Maximillien",
+  "description": "TetherWare Secure Enclave",
+  "private": true,
+  "main": "main.js",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "electron:dev": "electron .",
+    "electron:build": "next build && electron-builder"
+  },
+  "dependencies": {
+    "@dfinity/agent": "^3.2.7",
+    "@dfinity/auth-client": "^3.2.7",
+    "@dfinity/principal": "^3.2.7",
+    "@hello-pangea/dnd": "^18.0.1",
+    "@paypal/react-paypal-js": "^8.8.2",
+    "@tetherto/wdk-wallet-evm-erc-4337": "1.0.0-beta.5",
+    "@vercel/analytics": "^1.5.0",
+    "axios": "^1.10.0",
+    "crypto-js": "^4.2.0",
+    "ethers": "^6.16.0",
+    "ic-stoic-identity": "^6.0.0",
+    "next": "15.2.8",
+    "postcss-loader": "^8.1.1",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "react-icons": "^5.5.0",
+    "recharts": "^3.1.0",
+    "stripe": "^18.0.0",
+    "tailwindcss": "^4.0.14"
+  },
+  "devDependencies": {
+    "@eslint/eslintrc": "^3",
+    "@tailwindcss/postcss": "^4.0.14",
+    "@types/crypto-js": "^4.2.2",
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "autoprefixer": "^10.4.21",
+    "electron": "^30.0.0",
+    "electron-builder": "^24.13.3",
+    "eslint": "^9",
+    "eslint-config-next": "15.2.2",
+    "postcss": "^8.5.3",
+    "typescript": "^5"
+  },
+  "build": {
+    "appId": "com.agrosight.enclave",
+    "productName": "AgroSight Enclave",
+    "directories": {
+      "output": "dist-desktop"
+    },
+    "files": [
+      ".next/**/*",
+      "public/**/*",
+      "main.js",
+      "package.json"
+    ],
+    "win": {
+      "target": "nsis",
+      "icon": "public/favicon.ico"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true
+    }
+  }
+}

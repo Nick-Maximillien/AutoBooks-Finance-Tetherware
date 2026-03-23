@@ -1,0 +1,19 @@
+directories:
+  output: dist-desktop
+  buildResources: build
+appId: com.agrosight.enclave
+productName: AgroSight Enclave
+files:
+  - filter:
+      - .next/**/*
+      - public/**/*
+      - main.js
+      - package.json
+win:
+  target: nsis
+  icon: public/favicon.ico
+nsis:
+  oneClick: false
+  allowToChangeInstallationDirectory: true
+  createDesktopShortcut: true
+electronVersion: 41.0.3
