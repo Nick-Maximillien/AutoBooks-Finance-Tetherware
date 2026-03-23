@@ -3,36 +3,41 @@
 import React from 'react';
 import Link from 'next/link';
 
+/**
+ * ServicesPage Component
+ * Detailed overview of the AutoBooks AI platform capabilities, 
+ * including the Neurosymbolic architecture and UI Navigator innovation.
+ */
 export default function ServicesPage() {
   const services = [
     {
       title: "Autonomous Bookkeeping",
-      icon: "⚡",
+      icon: "",
       description: "Upload PDFs, images, or forward receipts via WhatsApp. Our neural engine automatically extracts line items and enforces strict IFRS double-entry accounting rules instantly."
     },
     {
       title: "Sovereign CFO Copilot",
-      icon: "🤖",
+      icon: "",
       description: "Converse with your financial data via voice or text. Ask complex strategic questions, project cash flow, and get empathetic, data-backed advice in real-time."
     },
     {
       title: "Real-Time Analytics",
-      icon: "📊",
+      icon: "",
       description: "Watch your P&L, Balance Sheet, and Cash Flow statements update the second a transaction is posted. Visualize your growth with dynamic, interactive charts."
     },
     {
       title: "Ledger Overwatch",
-      icon: "🛡️",
+      icon: "",
       description: "Total transparency. Every AI action generates a strict audit trace. Review confidence scores, override AI classifications, and execute compliant journal reversals."
     },
     {
       title: "Omnichannel Ingestion",
-      icon: "📱",
+      icon: "",
       description: "Send a voice note or a photo of an invoice to the WhatsApp AI, or drag-and-drop into the Web Dashboard. The engine processes it seamlessly across all platforms."
     },
     {
       title: "Neurosymbolic Architecture",
-      icon: "🧠",
+      icon: "",
       description: "The AI handles the prose; the hard-coded ledger handles the math. This strict separation guarantees zero hallucinations when it comes to your actual money."
     }
   ];
@@ -40,7 +45,7 @@ export default function ServicesPage() {
   return (
     <div className="page-container">
       
-      {/* HERO */}
+      {/* Hero Section */}
       <div className="hero-section">
         <div className="badge">Platform Capabilities</div>
         <h1 className="hero-title">Intelligent Financial <span>Solutions</span></h1>
@@ -49,10 +54,10 @@ export default function ServicesPage() {
         </p>
       </div>
 
-      {/* UI NAVIGATOR CALLOUT - THE PROFOUND INNOVATION */}
+      {/* Breakthrough Innovation: UI Navigator */}
       <section className="navigator-showcase">
         <div className="navigator-content">
-          <div className="nav-badge">✦ Breakthrough Feature</div>
+          <div className="nav-badge">Breakthrough Feature</div>
           <h2>The Sovereign UI Navigator</h2>
           <p>
             Experience financial ingestion like never before. Launch the UI Navigator to share your screen with the AI. Simply display an invoice, bill, or receipt on your monitor, and press the microphone to give the agent a voice command.
@@ -61,7 +66,7 @@ export default function ServicesPage() {
             The agent will visually scan your screen, extract the financial data, read it back to you, and autonomously execute the double-entry journal posting while providing a full visual audit trace in real-time.
           </p>
           <Link href="/ui-navigator" className="nav-launch-btn">
-            Launch UI Navigator →
+            Launch UI Navigator
           </Link>
         </div>
         <div className="navigator-visual">
@@ -72,7 +77,7 @@ export default function ServicesPage() {
         </div>
       </section>
 
-      {/* SERVICES GRID */}
+      {/* Services Grid */}
       <div className="services-grid">
         {services.map((service, idx) => (
           <div key={idx} className="service-card">
@@ -83,7 +88,7 @@ export default function ServicesPage() {
         ))}
       </div>
 
-      {/* CTA */}
+      {/* Call to Action */}
       <div className="cta-section">
         <h2>Ready to automate your ledger?</h2>
         <p>Join the future of financial intelligence today.</p>
@@ -101,7 +106,6 @@ export default function ServicesPage() {
           padding: 4rem 2rem;
         }
 
-        /* --- HERO --- */
         .hero-section {
           text-align: center;
           max-width: 800px;
@@ -145,7 +149,6 @@ export default function ServicesPage() {
           margin: 0 auto;
         }
 
-        /* --- NAVIGATOR SHOWCASE --- */
         .navigator-showcase {
           max-width: 1000px;
           margin: 0 auto 6rem;
@@ -239,7 +242,6 @@ export default function ServicesPage() {
           100% { top: 100%; opacity: 0; }
         }
 
-        /* --- SERVICES GRID --- */
         .services-grid {
           display: grid;
           grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
@@ -303,7 +305,6 @@ export default function ServicesPage() {
           font-size: 0.95rem;
         }
 
-        /* --- CTA SECTION --- */
         .cta-section {
           text-align: center;
           margin-top: 6rem;
@@ -352,7 +353,6 @@ export default function ServicesPage() {
           to { opacity: 1; transform: translateY(0); }
         }
 
-        /* RESPONSIVE */
         @media (max-width: 900px) {
           .navigator-showcase {
             grid-template-columns: 1fr;

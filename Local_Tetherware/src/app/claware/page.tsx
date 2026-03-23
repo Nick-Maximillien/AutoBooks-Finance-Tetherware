@@ -6,25 +6,38 @@ import CryptoJS from 'crypto-js';
 import { getTokensFromLocalStorage, refreshAccessTokenIfNeeded } from '../../utils/tokenUtils';
 import { useAuth } from '../../context/AuthContext'; 
 
+/**
+ * ClawareSigner Component
+ * Provides a high-security interface for local enclave management, 
+ * autonomous signing via OpenClaw, and multichain treasury operations.
+ */
 export default function ClawareSigner() {
   const { accessToken, signIn, signUp, signOut } = useAuth();
   
-  // Strict Boot Sequence States
+  /**
+   * Enclave Boot and Sync State
+   */
   const [isBooting, setIsBooting] = useState(true);
   const [hasKeystore, setHasKeystore] = useState(false);
   const [isSynced, setIsSynced] = useState(false);
   const [publicAddress, setPublicAddress] = useState("");
   
-  // HACKATHON CORE: Autonomous Signing State
+  /**
+   * Autonomous Signing Configuration
+   */
   const [autoSignEnabled, setAutoSignEnabled] = useState(false);
   const activePinRef = useRef<string | null>(null);
 
-  // MULTICHAIN & BALANCE STATE
+  /**
+   * Multichain and Asset State
+   */
   const [selectedChain, setSelectedChain] = useState("ethereum-sepolia");
   const [usdtBalance, setUsdtBalance] = useState("0.00");
   const [isFetchingBalance, setIsFetchingBalance] = useState(false);
 
-  // NEW: DIRECT TRANSFER STATE
+  /**
+   * Transaction Management State
+   */
   const [showSendForm, setShowSendForm] = useState(false);
   const [showReceiveInfo, setShowReceiveInfo] = useState(false);
   const [transferAddress, setTransferAddress] = useState("");
@@ -37,13 +50,17 @@ export default function ClawareSigner() {
   const [statusMessage, setStatusMessage] = useState("");
   const [step, setStep] = useState(0);
 
-  // Key Export State
+  /**
+   * Credential Export State
+   */
   const [showExport, setShowExport] = useState(false);
   const [revealPin, setRevealPin] = useState("");
   const [revealedKey, setRevealedKey] = useState("");
   const [revealedSeed, setRevealedSeed] = useState("");
 
-  // Web2 Binding State
+  /**
+   * Web2 Identity Binding State
+   */
   const [authMode, setAuthMode] = useState<'login' | 'register'>('login');
   const [showConnectForm, setShowConnectForm] = useState(false);
   const [username, setUsername] = useState("");
@@ -52,11 +69,12 @@ export default function ClawareSigner() {
 
   const DJANGO_URL = process.env.NEXT_PUBLIC_BACKEND_API_URL || "https://autobooks-backend-571147915643.us-central1.run.app";
   const NODE_RELAYER_URL = "https://node-web3-server.onrender.com"; 
-  const VERCEL_FRONTEND_URL = "https://your-autobooks-frontend.vercel.app"; 
+  const VERCEL_FRONTEND_URL = "https://autobooks-frontend.vercel.app"; 
 
-  // ==========================================
-  // 0. BOOT SEQUENCE & SYNC GATING
-  // ==========================================
+  /**
+   * Boot Sequence
+   * Validates local enclave existence and synchronization status on mount.
+   */
   useEffect(() => {
     const checkEnclaveBootState = async () => {
       try {
@@ -91,9 +109,10 @@ export default function ClawareSigner() {
     }
   }, [accessToken, hasKeystore]);
 
-  // ==========================================
-  // 1. BALANCE ENGINE
-  // ==========================================
+  /**
+   * Balance Synchronization Engine
+   * Polls the Node Relayer for current USDT balances across supported chains.
+   */
   useEffect(() => {
     if (!hasKeystore || !publicAddress) return;
 
@@ -117,9 +136,10 @@ export default function ClawareSigner() {
     return () => clearInterval(interval);
   }, [publicAddress, selectedChain, hasKeystore]);
 
-  // ==========================================
-  // 2. OPENCLAW AUTONOMOUS ENGINE
-  // ==========================================
+  /**
+   * OpenClaw Autonomous Engine
+   * Sweeps the backend for unsigned payloads and executes automatic signing if authorized.
+   */
   useEffect(() => {
     if (isBooting || !hasKeystore || !isSynced) return;
 
@@ -139,7 +159,7 @@ export default function ClawareSigner() {
           setPendingIntents(pending);
 
           if (autoSignEnabled && pending.length > 0 && !loading && activePinRef.current) {
-            console.log("🤖 OpenClaw: Autonomous signing triggered for Intent ID:", pending[0].id);
+            console.log("OpenClaw: Autonomous signing triggered for Intent ID:", pending[0].id);
             handleAutonomousSign(pending[0]);
           }
         }
@@ -174,14 +194,15 @@ export default function ClawareSigner() {
         headers: { "Content-Type": "application/json", "Authorization": `Bearer ${tokens.accessToken}` },
         body: JSON.stringify({ document_id: intent.id, tx_hash: signData.txHash })
       });
-      console.log(`✅ Autonomous Settlement Successful: ${signData.txHash}`);
+      console.log(`Autonomous Settlement Successful: ${signData.txHash}`);
     } catch (e) { console.error("AutoSign Failed:", e); }
     finally { setLoading(false); }
   };
 
-  // ==========================================
-  // 3. WALLET GENERATION
-  // ==========================================
+  /**
+   * Wallet Initialization
+   * Generates a new EOA and persists the encrypted seed to the local enclave.
+   */
   const handleCreateWallet = async () => {
     if (!pin) { setStatusMessage("Error: Please set an Enclave PIN."); return; }
     signOut(); 
@@ -208,9 +229,10 @@ export default function ClawareSigner() {
     finally { setLoading(false); }
   };
 
-  // ==========================================
-  // 4. ACCOUNT BINDING
-  // ==========================================
+  /**
+   * Account Binding
+   * Synchronizes the derived Smart Account with the Web2 business profile.
+   */
   const handleConnectBusiness = async () => {
     if (!username || !password || !pin || (authMode === 'register' && !email)) {
       setStatusMessage("Error: Missing required fields.");
@@ -218,10 +240,9 @@ export default function ClawareSigner() {
     }
     setLoading(true);
     try {
-      setStatusMessage("Unlocking Enclave & Deriving Vault...");
+      setStatusMessage("Unlocking Enclave and Deriving Vault...");
       const encryptedSeed = localStorage.getItem("claware_encrypted_seed");
 
-      // 1. DERIVE THE SMART ACCOUNT ADDRESS FROM THE ENCLAVE
       const deriveRes = await fetch("/api/sign", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -232,23 +253,20 @@ export default function ClawareSigner() {
       
       const saAddress = deriveData.smartAccountAddress;
 
-      // 2. AUTHENTICATE WEB2 PROFILE
       setStatusMessage(authMode === 'register' ? "Registering Business..." : "Authenticating Profile...");
       if (authMode === 'register') await signUp({ username, email, password, role: 'admin' });
       else await signIn(username, password);
 
-      // 3. BIND SMART ACCOUNT (VAULT) TO DJANGO
       const freshTokens = getTokensFromLocalStorage();
       setStatusMessage("Binding Vault to Cloud Ledger...");
       const activateRes = await fetch(`${DJANGO_URL}/web3/activate/`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${freshTokens.accessToken}` },
-        body: JSON.stringify({ wallet_address: saAddress, network: 'celo-sepolia' }) // SEND SA ADDRESS
+        body: JSON.stringify({ wallet_address: saAddress, network: 'celo-sepolia' }) 
       });
 
       if (!activateRes.ok) throw new Error("Binding failed.");
 
-      // 4. Update Keystore to include SA address for future boots
       await fetch('/api/sign', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
@@ -265,14 +283,15 @@ export default function ClawareSigner() {
     } finally { setLoading(false); }
   };
 
-  // ==========================================
-  // 5. MANUAL SIGN & BROADCAST 
-  // ==========================================
+  /**
+   * Manual Transaction Authorization
+   * Signs and broadcasts specific intents with explicit user consent.
+   */
   const handleSignAndBroadcast = async () => {
     if (!pin || !selectedIntent) return;
     setLoading(true);
     try {
-      setStatusMessage("🛡️ Sign & Broadcast: Signing via WDK...");
+      setStatusMessage("Signature Request: Signing via WDK...");
       const encryptedSeed = localStorage.getItem("claware_encrypted_seed");
       
       const signRes = await fetch("/api/sign", {
@@ -288,7 +307,7 @@ export default function ClawareSigner() {
       const signData = await signRes.json();
       if (!signRes.ok) throw new Error(signData.error || "Unknown signing or relay error");
 
-      setStatusMessage("🔗 Broadcasting & Reconciling...");
+      setStatusMessage("Broadcasting and Reconciling...");
       const tokens = getTokensFromLocalStorage();
       const freshToken = await refreshAccessTokenIfNeeded(tokens.accessToken!, tokens.refreshToken!);
       
@@ -303,28 +322,28 @@ export default function ClawareSigner() {
       const intentType = selectedIntent.unsigned_payload?.intent || "";
       const actionName = intentType ? intentType.replace(/-/g, " ").toUpperCase() : "TRANSACTION";
       
-      setStatusMessage(`✅ ${actionName} SUCCESSFUL! Tx: ${shortHash}...`);
+      setStatusMessage(`${actionName} SUCCESSFUL: ${shortHash}...`);
       
       setPendingIntents(prev => prev.filter(i => i.id !== selectedIntent.id));
       setTimeout(() => { setSelectedIntent(null); setPin(""); setStatusMessage(""); }, 3000);
     } catch (error: any) { 
-      setStatusMessage(`❌ Error: ${error.message}`); 
+      setStatusMessage(`Error: ${error.message}`); 
     } finally { 
       setLoading(false); 
     }
   };
 
-  // ==========================================
-  // 6. NEW: DIRECT TRANSFER LOGIC
-  // ==========================================
+  /**
+   * Direct Asset Transfer
+   * Encodes and signs standard ERC20 transfers for manual treasury management.
+   */
   const handleDirectTransfer = async () => {
     if (!pin || !transferAddress || !transferAmount) return;
     setLoading(true);
     try {
-      setStatusMessage("🛡️ SIGNING DIRECT TRANSFER...");
+      setStatusMessage("Signing Direct Transfer...");
       const std_usdt = "0xaA8E23Fb1079EA71e0a56F48a2aA51851D8433D0";
       
-      // Encode ERC20 Transfer manually (Ethers v6)
       const amountWei = ethers.parseUnits(transferAmount, 6);
       const iface = new ethers.Interface(["function transfer(address to, uint256 amount)"]);
       const encodedData = iface.encodeFunctionData("transfer", [transferAddress, amountWei]);
@@ -349,7 +368,7 @@ export default function ClawareSigner() {
       const signData = await signRes.json();
       if (!signRes.ok) throw new Error(signData.error || "Transfer failed");
 
-      setStatusMessage(`✅ TRANSFER SUCCESSFUL! Tx: ${signData.txHash.substring(0, 12)}...`);
+      setStatusMessage(`TRANSFER SUCCESSFUL: ${signData.txHash.substring(0, 12)}...`);
       setTimeout(() => { 
         setPin(""); 
         setStatusMessage(""); 
@@ -358,7 +377,7 @@ export default function ClawareSigner() {
         setTransferAmount(""); 
       }, 3000);
     } catch (error: any) {
-      setStatusMessage(`❌ Error: ${error.message}`);
+      setStatusMessage(`Error: ${error.message}`);
     } finally {
       setLoading(false);
     }
@@ -377,6 +396,7 @@ export default function ClawareSigner() {
       setRevealPin(""); 
     } catch (err: any) { alert(err.message); }
   };
+
   const handleHideKeys = () => { setRevealedKey(""); setRevealedSeed(""); setShowExport(false); };
   const handleCopy = (text: string) => { navigator.clipboard.writeText(text); alert("Copied!"); };
 
@@ -384,10 +404,9 @@ export default function ClawareSigner() {
     <div className="claware-desktop">
       <div className="desktop-container">
         
-        {/* HEADER SECTION */}
         <header className="dashboard-header">
           <div className="header-left">
-            <h1 className="title"><span className="icon">🛡️</span> TetherWare ENCLAVE</h1>
+            <h1 className="title">TetherWare ENCLAVE</h1>
             <p className="subtitle">10-Chain WDK Autonomous Agent</p>
           </div>
           <div className="header-right">
@@ -415,7 +434,6 @@ export default function ClawareSigner() {
         {!isBooting && hasKeystore && (
           <div className="dashboard-grid">
             
-            {/* LEFT COLUMN: WALLET & CONTROLS */}
             <aside className="dashboard-sidebar">
               <div className="hw-panel">
                 <h3 className="panel-title">WDK NETWORK</h3>
@@ -488,33 +506,31 @@ export default function ClawareSigner() {
               )}
 
               <div className="hw-panel export-panel">
-                 {!showExport && <button className="hw-btn-ghost" onClick={() => { setShowExport(true); setShowSendForm(false); setShowReceiveInfo(false); }}>EXPORT PRIVATE KEYS</button>}
-                 {showExport && !revealedKey && (
+                  {!showExport && <button className="hw-btn-ghost" onClick={() => { setShowExport(true); setShowSendForm(false); setShowReceiveInfo(false); }}>EXPORT PRIVATE KEYS</button>}
+                  {showExport && !revealedKey && (
                     <div className="hw-export-form">
-                       <input type="password" placeholder="DEVICE PIN" value={revealPin} onChange={(e) => setRevealPin(e.target.value)} className="hw-input" />
-                       <div className="hw-btn-group">
-                         <button className="hw-btn-ghost" onClick={() => setShowExport(false)}>CANCEL</button>
-                         <button className="hw-btn-danger" onClick={handleRevealKeys}>REVEAL</button>
-                       </div>
+                        <input type="password" placeholder="DEVICE PIN" value={revealPin} onChange={(e) => setRevealPin(e.target.value)} className="hw-input" />
+                        <div className="hw-btn-group">
+                          <button className="hw-btn-ghost" onClick={() => setShowExport(false)}>CANCEL</button>
+                          <button className="hw-btn-danger" onClick={handleRevealKeys}>REVEAL</button>
+                        </div>
                     </div>
-                 )}
-                 {showExport && revealedKey && (
+                  )}
+                  {showExport && revealedKey && (
                     <div className="hw-revealed">
-                       <span className="revealed-label">PRIVATE KEY</span>
-                       <div className="hw-key-box">{revealedKey}</div>
-                       <span className="revealed-label">SEED PHRASE</span>
-                       <div className="hw-key-box">{revealedSeed}</div>
-                       <button className="hw-btn-secondary" style={{width: '100%', marginTop: '10px'}} onClick={handleHideKeys}>LOCK DATA</button>
+                        <span className="revealed-label">PRIVATE KEY</span>
+                        <div className="hw-key-box">{revealedKey}</div>
+                        <span className="revealed-label">SEED PHRASE</span>
+                        <div className="hw-key-box">{revealedSeed}</div>
+                        <button className="hw-btn-secondary" style={{width: '100%', marginTop: '10px'}} onClick={handleHideKeys}>LOCK DATA</button>
                     </div>
-                 )}
+                  )}
               </div>
             </aside>
 
-            {/* RIGHT COLUMN: MAIN CONTENT */}
             <main className="dashboard-main">
                <div className="action-flex-container" style={{ display: 'grid', gridTemplateColumns: '350px 1fr', gap: '24px', alignItems: 'start' }}>
                  
-                 {/* ALWAYS VISIBLE: SEND/RECEIVE CONTROLS */}
                  <div className="transfer-column">
                    <div className="hw-panel" style={{ background: 'rgba(15, 23, 42, 0.5)', borderColor: '#334155' }}>
                      <h3 className="panel-title">TREASURY ACTIONS</h3>
@@ -549,19 +565,18 @@ export default function ClawareSigner() {
                    </div>
                  </div>
 
-                 {/* SYNC-DEPENDENT: PENDING INTENTS */}
                  <div className="intents-column">
                    {isSynced ? (
                      <>
                        <div className="sync-banner" style={{ marginBottom: '20px' }}>
-                         <span>✓ ENCLAVE LINKED TO CLOUD</span>
-                         <a href={VERCEL_FRONTEND_URL} target="_blank" rel="noreferrer" className="dash-link">DASHBOARD ↗</a>
+                         <span>ENCLAVE LINKED TO CLOUD</span>
+                         <a href={VERCEL_FRONTEND_URL} target="_blank" rel="noreferrer" className="dash-link">DASHBOARD</a>
                        </div>
                        <h2 className="main-title" style={{ marginTop: 0 }}>PENDING CLOUD INTENTS</h2>
                        <div className="intents-list" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))' }}>
                          {pendingIntents.length === 0 ? (
                            <div className="hw-empty-large" style={{ padding: '40px 20px' }}>
-                             <span className="empty-icon">📂</span>
+                             <span className="empty-icon"></span>
                              <p>NO PENDING PAYLOADS</p>
                              <small>Waiting for Agentic Instructions...</small>
                            </div>
@@ -584,7 +599,7 @@ export default function ClawareSigner() {
                      </>
                    ) : (
                      <div className="hw-empty-large not-synced" style={{ height: '100%' }}>
-                       <span className="empty-icon">🔗</span>
+                       <span className="empty-icon"></span>
                        <p>ENCLAVE NOT SYNCED</p>
                        <small>Pair with your cloud business profile to receive autonomous intents.</small>
                      </div>
@@ -597,11 +612,10 @@ export default function ClawareSigner() {
         )}
       </div>
 
-      {/* OVERLAY MODAL (Full Screen Centered) */}
       {selectedIntent && (
         <div className="hw-modal-takeover">
           <div className="hw-modal-content">
-            <h2 className="blink-warning">⚠️ SIGNATURE REQUIRED</h2>
+            <h2 className="blink-warning">SIGNATURE REQUIRED</h2>
             <p className="modal-subtitle">Review payload before broadcasting to {selectedIntent.unsigned_payload?.network?.toUpperCase()}</p>
             <div className="hw-payload-view">
               <pre>{JSON.stringify(selectedIntent.unsigned_payload, null, 2)}</pre>
@@ -616,7 +630,6 @@ export default function ClawareSigner() {
         </div>
       )}
 
-      {/* MASSIVE INLINE CSS FOR HIGH-TECH DESKTOP DASHBOARD */}
       <style jsx>{`
         .claware-desktop {
           min-height: 100vh;
@@ -631,14 +644,13 @@ export default function ClawareSigner() {
 
         .desktop-container {
           width: 100%;
-          max-width: 1400px; /* Full desktop width */
+          max-width: 1400px;
           margin: 0 auto;
           display: flex;
           flex-direction: column;
           gap: 24px;
         }
 
-        /* Dashboard Header */
         .dashboard-header {
           display: flex;
           justify-content: space-between;
@@ -689,7 +701,6 @@ export default function ClawareSigner() {
           box-shadow: 0 0 8px #34d399;
         }
 
-        /* Main Grid Layout */
         .dashboard-grid {
           display: grid;
           grid-template-columns: 380px 1fr;
@@ -697,7 +708,6 @@ export default function ClawareSigner() {
           align-items: start;
         }
 
-        /* Sidebar Panels */
         .dashboard-sidebar {
           display: flex;
           flex-direction: column;
@@ -784,7 +794,6 @@ export default function ClawareSigner() {
           font-weight: bold;
         }
 
-        /* Inputs & Buttons */
         .hw-input {
           width: 100%;
           background: #020617;
@@ -833,7 +842,6 @@ export default function ClawareSigner() {
 
         .hw-btn-group { display: flex; gap: 12px; width: 100%; }
 
-        /* Autonomy Panel */
         .autonomy-header {
           display: flex;
           justify-content: space-between;
@@ -851,7 +859,6 @@ export default function ClawareSigner() {
         .hw-toggle.on { background: #34d399; color: #000; box-shadow: 0 0 15px rgba(52,211,153,0.3); }
         .hw-toggle.off { background: #1e293b; color: #64748b; border: 1px solid #334155; }
 
-        /* Main Content Area */
         .dashboard-main {
           display: flex;
           flex-direction: column;
@@ -937,7 +944,6 @@ export default function ClawareSigner() {
           word-break: break-all;
         }
 
-        /* Empty States */
         .full-loading, .onboarding-full {
           display: flex;
           justify-content: center;
@@ -971,7 +977,6 @@ export default function ClawareSigner() {
         .empty-icon { font-size: 3rem; display: block; margin-bottom: 15px; opacity: 0.5; }
         .hw-empty-large p { font-size: 1.2rem; font-weight: bold; color: #f8fafc; margin: 0 0 10px 0; }
 
-        /* Settings & Auth */
         .hw-tabs { display: flex; margin-bottom: 20px; border-bottom: 1px solid #334155; }
         .hw-tab { flex: 1; background: none; border: none; color: #64748b; padding: 12px; font-family: inherit; cursor: pointer; font-size: 0.9rem; font-weight: bold; }
         .hw-tab.active { color: #38bdf8; border-bottom: 2px solid #38bdf8; }
@@ -988,7 +993,6 @@ export default function ClawareSigner() {
         .revealed-label { display: block; color: #ef4444; font-size: 0.7rem; margin-bottom: 5px; font-weight: bold; }
         .hw-key-box { color: #fff; font-size: 0.8rem; word-break: break-all; margin-bottom: 15px; user-select: all; }
 
-        /* Modal Overlay */
         .hw-modal-takeover {
           position: fixed; top: 0; left: 0; right: 0; bottom: 0;
           background: rgba(2,6,23,0.95);

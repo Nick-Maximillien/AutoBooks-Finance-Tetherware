@@ -7,7 +7,10 @@ import {
 } from "recharts";
 import { getTokensFromLocalStorage, refreshAccessTokenIfNeeded } from "../../utils/tokenUtils";
 
-// Colors for our charts
+/**
+ * Chart Aesthetic Configuration
+ * Defines the standard color palette for financial visualization.
+ */
 const COLORS = {
   income: "#10b981",
   expense: "#ef4444",
@@ -22,27 +25,39 @@ export default function Analytics() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Symbolic Data States
+  /**
+   * Financial Statement State
+   * Stores raw data retrieved from the symbolic ledger.
+   */
   const [pnlData, setPnlData] = useState<any>(null);
   const [bsData, setBsData] = useState<any>(null);
   const [cfData, setCfData] = useState<any>(null);
 
-  // Macro AI State
+  /**
+   * AI Insight State
+   * Manages executive summaries and granular chart analysis.
+   */
   const [cfoAnalysis, setCfoAnalysis] = useState<string | null>(null);
   const [analyzing, setAnalyzing] = useState(false);
 
-  // Chart Toggle States ('bar', 'line', 'pie')
+  /**
+   * UI Preference State
+   * Controls the visualization type for each financial metric.
+   */
   const [pnlType, setPnlType] = useState<"bar" | "line" | "pie">("bar");
   const [bsType, setBsType] = useState<"bar" | "line" | "pie">("pie");
   const [cfType, setCfType] = useState<"bar" | "line" | "pie">("bar");
   const [granularType, setGranularType] = useState<"bar" | "line" | "pie">("pie");
 
-  // Localized AI Insight States
   const [chartInsights, setChartInsights] = useState<{ [key: string]: string }>({});
   const [loadingInsights, setLoadingInsights] = useState<{ [key: string]: boolean }>({});
 
   const { accessToken, refreshToken } = getTokensFromLocalStorage();
 
+  /**
+   * Data Acquisition Pipeline
+   * Synchronizes state with the Django backend financial endpoints.
+   */
   const fetchFinancials = async () => {
     setLoading(true);
     setError(null);
@@ -51,7 +66,6 @@ export default function Analytics() {
       const baseUrl = process.env.NEXT_PUBLIC_BACKEND_API_URL || 'http://127.0.0.1:8000';
       const headers = { Authorization: `Bearer ${token}` };
 
-      // Ensure your API paths here exactly match your Django urls.py
       const [pnlRes, bsRes, cfRes] = await Promise.all([
         fetch(`${baseUrl}/pnl/`, { headers }),
         fetch(`${baseUrl}/balance-sheet/`, { headers }),
@@ -75,7 +89,10 @@ export default function Analytics() {
     fetchFinancials();
   }, []);
 
-  // The Generic API caller for AI Insights
+  /**
+   * AI Analysis Engine
+   * Interfaces with the LLM gateway to provide prose-based financial interpretation.
+   */
   const requestAIInsight = async (prompt: string, key: string, isMacro = false) => {
     if (isMacro) setAnalyzing(true);
     else setLoadingInsights(prev => ({ ...prev, [key]: true }));
@@ -96,9 +113,8 @@ export default function Analytics() {
       if (!res.ok) throw new Error("AI Agent failed to analyze.");
       const data = await res.json();
 
-      // Strip out the raw tables the backend automatically appends to focus only on prose
       const content = data.reply || "";
-      const splitIndex = content.search(/📊|📈|💰|💼|📋/);
+      const splitIndex = content.search(/[chart_symbol_placeholder]/);
       const cleanText = splitIndex > 0 ? content.substring(0, splitIndex).trim() : content;
 
       if (isMacro) {
@@ -107,7 +123,7 @@ export default function Analytics() {
         setChartInsights(prev => ({ ...prev, [key]: cleanText }));
       }
     } catch (err: any) {
-      const errMsg = `❌ Analysis Error: ${err.message}`;
+      const errMsg = `Analysis Error: ${err.message}`;
       if (isMacro) setCfoAnalysis(errMsg);
       else setChartInsights(prev => ({ ...prev, [key]: errMsg }));
     } finally {
@@ -124,10 +140,14 @@ export default function Analytics() {
     requestAIInsight(`Review this specific chart data: ${dataString}. Provide exactly 2 sentences of strategic insight pointing out the most important anomaly or trend. Do not output tables.`, chartKey, false);
   };
 
-  // --- Formatters & Data Prep ---
+  /**
+   * Formatting Utilities
+   */
   const formatCurrency = (val: any) => `KSH ${Number(val).toLocaleString(undefined, {minimumFractionDigits: 2})}`;
 
-  // 1. PNL Data
+  /**
+   * Visualization Data Preparation
+   */
   const incomeVal = Number(pnlData?.totals?.INCOME || 0);
   const expenseVal = Number(pnlData?.totals?.EXPENSE || 0);
   const pnlBarLineData = [{ name: "Current Period", Income: incomeVal, Expenses: expenseVal }];
@@ -136,7 +156,6 @@ export default function Analytics() {
     { name: "Expenses", value: expenseVal, color: COLORS.expense }
   ];
 
-  // 2. Balance Sheet Data
   const assetsVal = Number(bsData?.assets || 0);
   const liabVal = Number(bsData?.liabilities || 0);
   const eqVal = Number(bsData?.equity || 0);
@@ -147,7 +166,6 @@ export default function Analytics() {
     { name: "Equity (Abs)", value: Math.abs(eqVal), color: COLORS.equity }
   ];
 
-  // 3. Cash Flow Data
   const cfBarLineData = [{ 
     name: "Cash Flow", 
     Operating: Number(cfData?.operating || 0), 
@@ -160,7 +178,6 @@ export default function Analytics() {
     { name: "Financing", value: Math.abs(Number(cfData?.financing || 0)), color: COLORS.equity },
   ];
 
-  // 4. Granular Individual Items Data (Dynamic mapping of PNL specific accounts if available)
   let granularData: any[] = [];
   if (pnlData && pnlData.expenses) {
     granularData = Object.entries(pnlData.expenses).map(([key, val], idx) => ({
@@ -170,7 +187,9 @@ export default function Analytics() {
     })).filter(item => item.value > 0);
   }
 
-  // Generic Chart Renderer
+  /**
+   * Component Renderers
+   */
   const renderChart = (type: string, barLineData: any[], pieData: any[], keys: {key: string, color: string}[]) => {
     if (type === "pie") {
       return (
@@ -212,7 +231,7 @@ export default function Analytics() {
   if (loading) {
     return (
       <div className="loader">
-        <div className="loaderIcon">📊</div>
+        <div className="loaderIcon"></div>
         <p>Compiling Ledger Visualizations...</p>
       </div>
     );
@@ -220,7 +239,6 @@ export default function Analytics() {
 
   return (
     <div className="dashboard">
-      {/* Header with adjacent buttons */}
       <div className="header">
         <div>
           <h1>Financial Analytics</h1>
@@ -232,21 +250,20 @@ export default function Analytics() {
             disabled={analyzing} 
             className="actionBtn primaryBtn"
           >
-            {analyzing ? "🤖 Synthesizing..." : "🤖 Generate Executive Analysis"}
+            {analyzing ? "Synthesizing..." : "Generate Executive Analysis"}
           </button>
           <button onClick={fetchFinancials} className="actionBtn outlineBtn">
-            🔄 Refresh
+            Refresh
           </button>
         </div>
       </div>
 
-      {error && <div className="errorBox">❌ {error}</div>}
+      {error && <div className="errorBox">{error}</div>}
 
-      {/* MACRO AI PANEL (Rendered at top when generated) */}
       {(cfoAnalysis || analyzing) && (
         <div className="aiPanel">
           <div className="aiHeader">
-            <h2>🤖 Executive Forecast</h2>
+            <h2>Executive Forecast</h2>
           </div>
           <div className="aiContent">
             {analyzing ? <p className="thinking">Analyzing the entire ledger...</p> : 
@@ -256,7 +273,6 @@ export default function Analytics() {
         </div>
       )}
 
-      {/* KPI Ribbon */}
       <div className="kpiGrid">
         <div className="kpiCard">
           <span>Net Profit (Loss)</span>
@@ -276,17 +292,15 @@ export default function Analytics() {
         </div>
       </div>
 
-      {/* Charts Grid */}
       <div className="chartsGrid">
         
-        {/* P&L Chart */}
         <div className="chartCard">
           <div className="chartHeader">
             <h2>Income vs Expenses</h2>
             <select value={pnlType} onChange={(e: any) => setPnlType(e.target.value)} className="chartToggle">
-              <option value="bar">📊 Bar</option>
-              <option value="line">📈 Line</option>
-              <option value="pie">🍩 Pie</option>
+              <option value="bar">Bar</option>
+              <option value="line">Line</option>
+              <option value="pie">Pie</option>
             </select>
           </div>
           <div className="chartWrapper">
@@ -296,20 +310,19 @@ export default function Analytics() {
           </div>
           <div className="chartInsight">
             <button onClick={() => generateMicroInsight('pnl', `Income: ${incomeVal}, Expenses: ${expenseVal}`)} disabled={loadingInsights['pnl']} className="insightBtn">
-              {loadingInsights['pnl'] ? "Thinking..." : "💡 Get Chart Insight"}
+              {loadingInsights['pnl'] ? "Thinking..." : "Get Chart Insight"}
             </button>
             {chartInsights['pnl'] && <p className="insightText">{chartInsights['pnl']}</p>}
           </div>
         </div>
 
-        {/* Balance Sheet Chart */}
         <div className="chartCard">
           <div className="chartHeader">
             <h2>Financial Position</h2>
             <select value={bsType} onChange={(e: any) => setBsType(e.target.value)} className="chartToggle">
-              <option value="pie">🍩 Pie</option>
-              <option value="bar">📊 Bar</option>
-              <option value="line">📈 Line</option>
+              <option value="pie">Pie</option>
+              <option value="bar">Bar</option>
+              <option value="line">Line</option>
             </select>
           </div>
           <div className="chartWrapper">
@@ -319,20 +332,19 @@ export default function Analytics() {
           </div>
           <div className="chartInsight">
             <button onClick={() => generateMicroInsight('bs', `Assets: ${assetsVal}, Liabilities: ${liabVal}`)} disabled={loadingInsights['bs']} className="insightBtn">
-              {loadingInsights['bs'] ? "Thinking..." : "💡 Get Chart Insight"}
+              {loadingInsights['bs'] ? "Thinking..." : "Get Chart Insight"}
             </button>
             {chartInsights['bs'] && <p className="insightText">{chartInsights['bs']}</p>}
           </div>
         </div>
 
-        {/* Cash Flow Chart */}
         <div className="chartCard">
           <div className="chartHeader">
             <h2>Cash Flow Activities</h2>
             <select value={cfType} onChange={(e: any) => setCfType(e.target.value)} className="chartToggle">
-              <option value="bar">📊 Bar</option>
-              <option value="line">📈 Line</option>
-              <option value="pie">🍩 Pie</option>
+              <option value="bar">Bar</option>
+              <option value="line">Line</option>
+              <option value="pie">Pie</option>
             </select>
           </div>
           <div className="chartWrapper">
@@ -342,19 +354,18 @@ export default function Analytics() {
           </div>
           <div className="chartInsight">
             <button onClick={() => generateMicroInsight('cf', `Op: ${cfData?.operating}, Inv: ${cfData?.investing}, Fin: ${cfData?.financing}`)} disabled={loadingInsights['cf']} className="insightBtn">
-              {loadingInsights['cf'] ? "Thinking..." : "💡 Get Chart Insight"}
+              {loadingInsights['cf'] ? "Thinking..." : "Get Chart Insight"}
             </button>
             {chartInsights['cf'] && <p className="insightText">{chartInsights['cf']}</p>}
           </div>
         </div>
 
-        {/* Granular Item Breakdown Chart */}
         <div className="chartCard">
           <div className="chartHeader">
             <h2>Granular Expense Breakdown</h2>
             <select value={granularType} onChange={(e: any) => setGranularType(e.target.value)} className="chartToggle">
-              <option value="pie">🍩 Pie</option>
-              <option value="bar">📊 Bar</option>
+              <option value="pie">Pie</option>
+              <option value="bar">Bar</option>
             </select>
           </div>
           <div className="chartWrapper">
@@ -370,7 +381,7 @@ export default function Analytics() {
           </div>
           <div className="chartInsight">
             <button onClick={() => generateMicroInsight('granular', `Top expenses: ${granularData.slice(0,3).map(d => d.name).join(', ')}`)} disabled={loadingInsights['granular']} className="insightBtn">
-              {loadingInsights['granular'] ? "Thinking..." : "💡 Get Chart Insight"}
+              {loadingInsights['granular'] ? "Thinking..." : "Get Chart Insight"}
             </button>
             {chartInsights['granular'] && <p className="insightText">{chartInsights['granular']}</p>}
           </div>
@@ -385,7 +396,6 @@ export default function Analytics() {
       .header p { color: #64748b; margin-top: 4px; }
       .headerActions { display: flex; gap: 12px; }
       
-      /* Standardized Chart Wrapper to ensure fixed height */
       .chartWrapper { height: 280px; width: 100%; margin-bottom: 16px; }
       .emptyState { display: flex; height: 100%; align-items: center; justify-content: center; color: #94a3b8; font-style: italic; font-size: 0.9rem; }
 

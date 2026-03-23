@@ -65,7 +65,7 @@ TetherWare is the critical local signing layer for the AutoBooks Finance archite
 | **Cryptography** | ethers | ^6.16.0 | Wallet generation, signing primitives |
 | **Encryption** | crypto-js | ^4.2.0 | PIN-based seed phrase encryption |
 | **Build Tool** | electron-builder | ^24.13.3 | Windows NSIS installer generation |
-| **ICP Integration** | @dfinity/agent | ^3.2.7 | Canister smart contract calls (optional) |
+
 
 ---
 
@@ -104,15 +104,12 @@ Local_Tetherware/
 │   │   │
 │   │   ├── components/              # React components
 │   │   ├── journal/                 # Ledger journal UI
-│   │   ├── analytics/               # Dashboard analytics
 │   │   ├── admin/                   # Admin panel
 │   │   ├── shopper_login/           # Shopper authentication
 │   │   ├── shopper_signup/          # Account creation
 │   │   ├── shopper_dashboard/       # User portal
 │   │   ├── web3/                    # Web3 integration screens
-│   │   ├── claware/                 # OpenClaw policy UI
-│   │   ├── reconciliation/          # Bank reconciliation
-│   │   ├── team/                    # Team management
+│   │   ├── claware/                 # TetherWare wallet UI
 │   │   └── ui_navigator/            # UI navigation
 │   │
 │   ├── context/
@@ -130,13 +127,13 @@ Local_Tetherware/
 │                                    # - refreshAccessTokenIfNeeded()
 │                                    # - Token expiry checking
 │
-├── dist-desktop/                    # Build output (generated)
+├── dist-desktop/                    # Desktop application build
 │   ├── Tetherware Enclave Setup 0.1.0.exe
 │   ├── latest.yml                   # Auto-update manifest
 │   ├── builder-effective-config.yaml
 │   └── builder-debug.yml
 │
-└── .claware_keystore               # 🔐 LOCAL KEYSTORE (git-ignored)
+└── .claware_keystore               #  LOCAL KEYSTORE (git-ignored)
                                     # - Encrypted seed phrase
                                     # - Smart account address
                                     # - Signer address
@@ -185,7 +182,7 @@ const saAddress = await smartAccount.getAddress();
 - **Batch transactions** into a single signed operation
 - **Deterministic gas** estimation via Safe ModuleManager
 - **Crosschain consistency** via ERC-712 hashing
-- **Enterprise sponsorship** ready (though currently disabled)
+- **Gas arbitrage** ready 
 
 ### 3. **Native Digest Signing (AA24 Fix)**
 
@@ -219,16 +216,16 @@ Built-in registry for simultaneous operability across:
 
 | Network | ChainID | RPC Endpoint | Status |
 |---------|---------|--------------|--------|
-| Ethereum Sepolia | 11155111 | publicnode.com | ✅ Testnet |
-| Base Sepolia | 84532 | publicnode.com | ✅ Testnet |
-| Arbitrum Sepolia | 421614 | arbitrum.io | ✅ Testnet |
-| Polygon Amoy | 80002 | polygon.technology | ✅ Testnet |
-| Optimism Sepolia | 11155420 | optimism.io | ✅ Testnet |
-| Avalanche Fuji | 43113 | avax-test.network | ✅ Testnet |
-| Celo Alfajores | 44787 | forno.celo-testnet.org | ✅ Testnet |
-| Linea Sepolia | 59141 | rpc.sepolia.linea.build | ✅ Testnet |
-| Scroll Sepolia | 534351 | sepolia-rpc.scroll.io | ✅ Testnet |
-| Blast Sepolia | 168587773 | sepolia.blast.l2beat.com | ✅ Testnet |
+| Ethereum Sepolia | 11155111 | publicnode.com |  Testnet |
+| Base Sepolia | 84532 | publicnode.com |  Testnet |
+| Arbitrum Sepolia | 421614 | arbitrum.io |  Testnet |
+| Polygon Amoy | 80002 | polygon.technology |  Testnet |
+| Optimism Sepolia | 11155420 | optimism.io |  Testnet |
+| Avalanche Fuji | 43113 | avax-test.network |  Testnet |
+| Celo Alfajores | 44787 | forno.celo-testnet.org |  Testnet |
+| Linea Sepolia | 59141 | rpc.sepolia.linea.build |  Testnet |
+| Scroll Sepolia | 534351 | sepolia-rpc.scroll.io |  Testnet |
+| Blast Sepolia | 168587773 | sepolia.blast.l2beat.com |  Testnet |
 
 ---
 
@@ -281,7 +278,7 @@ After signing, transactions flow through the **Node Web3 Server** (multi-chain r
 ```
 TetherWare → POST /web3/settle-bill → Node.js Server
                                         │
-                                        └─→ Thirdweb Bundler
+                                        └─→ Master Wallet Node custom Bundler
                                             └─→ Chain RPC
                                                 └─→ Blockchain
 ```

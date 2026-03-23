@@ -66,6 +66,6 @@ def generate_credit_note():
 
         c.showPage()
         c.save()
-    print(f"✅ Generated Q3 Friction Document: {filepath}")
+    print(f" Generated Q3 Friction Document: {filepath}")
 
 generate_credit_note()

@@ -1,203 +1,538 @@
 # AutoBooks Finance: IFRS-Compliant Blockchain Treasury System
 
-A modular, production-grade system integrating IFRS-compliant accounting with non-custodial blockchain treasury management. The architecture separates concerns into four specialized services: financial data ingestion and validation, deterministic ledger operations, local signing infrastructure, and blockchain transaction execution.
+A **non-custodial AI finance agent** that reads real-world financial documents and autonomously settles them on-chain using Tether WDK and OpenClaw. The architecture separates concerns into four specialized services: financial accounting engine with AI document processing, deterministic ledger operations, local air-gapped signing infrastructure, and stateless blockchain transaction relaying.
+
+## Live Deployments 
+
+| Service | Infrastructure | Live URL |
+|---------|----------------|----------|
+| **Frontend UI** | Vercel | [autobooks-frontend.vercel.app](https://autobooks-frontend.vercel.app) |
+| **IFRS Backend** | GCP Cloud Run + Cloud SQL | [autobooks-backend-571147915643.us-central1.run.app](https://autobooks-backend-571147915643.us-central1.run.app) |
+| **Node Web3 Relayer**| Render | [node-web3-server.onrender.com](https://node-web3-server.onrender.com) |
+| **Local Tetherware** | Local OS / Desktop | *Requires Local Build (Electron)* |
 
 ## System Overview
 
-AutoBooks Finance operates as an integrated pipeline:
+AutoBooks Finance operates as an integrated pipeline for financial document to blockchain execution:
 
 ```
 User Input (Documents, Transactions)
          ↓
-   [Frontend-UI: Dashboard & Ingestion]
+   [Frontend-UI: Dashboard & AI Ingestion]
          ↓
 [IFRS_Backend: Validation & Double-Entry Ledger]
          ↓
-[Local_Tetherware: Key Management & Signing]
+[Local_Tetherware: Secure Local Signing]
          ↓
 [Node_Web3_Server: Blockchain Execution]
          ↓
    Final Settlement (On-Chain)
 ```
 
-### Data Flow
+### Core Data Flows
 
-1. **Ingestion**: Users submit financial documents and transaction requests through the Frontend-UI.
-2. **Validation**: The IFRS_Backend applies deterministic IFRS rules, validates double-entry integrity, and maintains the authoritative ledger.
-3. **Enclave Processing**: Local_Tetherware receives validated transactions, applies local key security protocols, and orchestrates signatures via Tether WDK.
-4. **Blockchain Execution**: Node_Web3_Server constructs and submits UserOperations to blockchain bundlers for finalization.
+1. **Financial Document Ingestion**: Users submit invoices, receipts, and statements via Frontend-UI. Google Vertex AI extracts and auto-classifies documents. IFRS_Backend validates and posts to ledger.
+
+2. **Real-Time Financial Reporting**: Retrieve balance sheet, P&L, and cash flow via REST API. Supports multiple financial periods with automatic period closing.
+
+3. **Web3 Signing Pipeline**: IFRS_Backend generates transaction intents. Local_Tetherware signs locally via PIN-protected enclave. Node_Web3_Server broadcasts to blockchain.
+
+4. **Conversational Finance**: WhatsApp and web chat interfaces allow voice commands (close period, request liquidity, approve bills) routed through AI agent with access to full financial ledger.
 
 ## Architecture Components
 
 ### [Frontend-UI](./Frontend-UI)
-**Next.js-based dashboard and ingestion layer**
-- Document upload and vision-based ingestion via UI Navigator
-- Real-time transaction display and financial reporting
-- Conversational finance interface with RAG capabilities
-- Blockchain treasury status monitoring
-- Dashboard components for balance sheet, P&L, and cash flow views
+**Next.js 15 + React 19 web dashboard and document ingestion**
 
-**Tech Stack**: Next.js 15, React 19, TypeScript, Tailwind CSS, ethers.js
+- **Vision-Based Document Processing**: Upload invoices/receipts → Google Vertex AI extracts text/tables/amounts → UI Navigator displays for confirmation
+- **Real-Time Financial Dashboard**: 
+  - Balance sheet (live account balances)
+  - P&L statement (income vs. expenses)
+  - Cash flow tracking
+  - Journal entry view with filtering
+- **Multi-Document Ingestion**: Auto-classification as invoices, bills, receipts, asset purchases
+- **Authentication**: JWT tokens via AuthContext
+- **Blockchain Integration**: Monitor treasury positions via ethers.js
+- **Data Export**: Download financial statements as PDF/Excel
+
+**Tech Stack**: 
+- Next.js 15.2.8, React 19, TypeScript 5
+- Tailwind CSS 4.0 for styling
+- Ethers.js 6 for Web3 integration
+- Axios for REST API calls
+- Recharts for financial charting
+- Google Vertex AI integration for document analysis
 
 ---
 
 ### [IFRS_Backend](./IFRS_Backend)
-**Django-based double-entry accounting engine**
-- IFRS for SMEs (2025 Third Edition) compliance framework
-- Deterministic account validation and transaction posting
-- Multi-document auto-classification using LLM intelligence
-- Audit trail with immutable journal entries
-- Financial statement generation (Balance Sheet, P&L, Cash Flow)
-- REST API for all accounting operations
+**Django 5 REST API implementing IFRS for SMEs (2025 Third Edition) compliance engine**
 
-**Tech Stack**: Django 5.2, PostgreSQL, Celery, Redis, Google Gemini AI
+**Core Responsibilities**:
+- **Double-Entry Ledger**: Enforce debits = credits invariant atomically
+- **Chart of Accounts**: 60+ IFRS-mapped accounts (Assets, Liabilities, Equity, Income, Expense)
+- **Financial Calculations**: 
+  - Depreciation (straight-line & reducing-balance methods)
+  - Asset impairment testing
+  - Tax calculations
+  - Period closing with automatic P&L transfer to Retained Earnings
+- **Document Processing with AI**:
+  - Google Vertex AI auto-extracts from PDFs/images
+  - Deterministic ownership verification (prevents posting wrong entity's docs)
+  - LLM-based document type classification
+  - Multi-layer validation gates
+- **Real-Time Financial APIs**:
+  - Balance Sheet, P&L, Cash Flow endpoints
+  - Manual adjustments (depreciation, accruals)
+  - Journal entry posting
+  - Transaction reversal (creates reversing entries)
+- **Conversational Agent** (WhatsApp/Web Chat):
+  - Voice command processing via Google Gemini
+  - Financial query tools: get balance sheet, request liquidity, settle bills, execute payroll
+  - Autonomous transaction signing (with user approval)
+  - Real-time updates via Text-to-Speech responses
+
+**Key Models**:
+- `BusinessProfile` - Company entity with financial year config
+- `FinancialPeriod` - Accounting periods (open/closed state)
+- `Account` - Chart of accounts with running balance
+- `Transaction` - Ledger transactions (DRAFT/POSTED/PENDING_SIGNATURE status)
+- `JournalEntry` - Double-entry records (debit/credit pairs)
+- `Document` - Ingested invoices/receipts with AI extraction
+- `FixedAsset` - PP&E with depreciation schedules
+- `Shareholder` - Equity holders for dividend distribution
+
+**Deployment Architecture**:
+- Django 5.2.7 with Gunicorn WSGI server
+- PostgreSQL 15 (Docker containerized)
+- Redis 7 for Celery task queue
+- Celery workers for async document processing
+- Google Cloud Run compatible
+
+**Tech Stack**:
+- Django 5.2, DRF 3.16
+- PostgreSQL 15, Redis 7
+- Celery 5.5 for async tasks
+- Google Vertex AI (genai library) + Text-to-Speech API
+- Stripe + Twilio (WhatsApp)
+- web3.py, eth-account for blockchain integration
+- Pandas + ReportLab for Excel/PDF export
 
 ---
 
 ### [Local_Tetherware](./Local_Tetherware)
-**Electron-based local signing enclave**
-- Non-custodial private key management
-- Tether WDK signature orchestration
-- OpenClaw integration for autonomous execution workflows
-- Deterministic audit gates for transaction authorization
-- Air-gapped key operations with secure inter-process communication
+**Electron desktop application with local air-gapped signing enclave**
 
-**Tech Stack**: Electron, Node.js, Tether WDK, OpenClaw
+**Purpose**: Secure, offline-capable private key management where signing happens locally, never exposing keys to backend.
+
+**Key Capabilities**:
+- **Air-Gapped Signing**: Private keys stored locally (IndexedDB with AES-256-GCM encryption)
+- **PIN-Protected Access**: Decrypt seed phrases only when signing
+- **Multi-Chain Support**: Handles transactions across 10 EVM chains (Ethereum, Base, Arbitrum, Polygon, Optimism, Avalanche, Celo, Linea, Scroll, Blast)
+- **Autonomous Signing**: OpenClaw deterministic approval policies
+- **Transaction Intent Processing**: Receives unsigned intents from IFRS_Backend, signs them, broadcasts via Node_Web3_Server
+- **USDT Treasury Monitoring**: Real-time balance queries across chains
+- **Web2 Identity Binding**: Link desktop enclave to Django user account
+
+**Architecture**:
+- Electron wrapper around Next.js 15
+- Internal HTTP server (port 3000) runs locally for offline operation
+- `/api/sign` route handles cryptographic signing via WDK
+- IndexedDB for encrypted key storage
+- Automatic key export/import with encrypted backup
+
+**Tech Stack**:
+- Electron 30.0 desktop framework
+- Next.js 15.2.8 renderer
+- TypeScript + Tailwind CSS
+- @tetherto/wdk-wallet-evm-erc-4337 (TetherTo Wallet SDK)
+- ethers.js 6 for chain interactions
+- CryptoJS for client-side encryption
 
 ---
 
 ### [Node_Web3_Server](./Node_Web3_Server)
-**Node.js-based blockchain relayer**
-- ERC-4337 Account Abstraction support
-- UserOperation construction and validation
-- Blockchain bundler integration
-- Multi-chain transaction routing
-- Real-time transaction state tracking
+**Express.js stateless relay service for blockchain transaction execution**
 
-**Tech Stack**: Node.js, ethers.js v6, Express, ERC-4337 standards
+**Purpose**: Convert signed transaction payloads into blockchain-executable operations and broadcast to ERC-4337 bundlers.
+
+**Core Responsibilities**:
+- **Multi-Chain Routing**: Route transactions to correct RPC endpoint/bundler (10 supported EVM chains)
+- **UserOperation Construction**: Build ERC-4337 UserOps with proper gas estimates
+- **Bundler Coordination**: Submit to Pimlico/Stackup/Alchemy bundler networks
+- **Transaction State Tracking**: Monitor on-chain confirmation and relay status back to frontend
+- **USDT Transfer Handling**: ERC-20 transfer encoding and execution
+- **Gasless Execution**: Leverages account abstraction for zero-gas user experience (optional sponsor handles gas)
+
+**API Endpoints**:
+- `POST /encode-intent` - Prepare unsigned transaction payload
+- `POST /submit-transaction` - Broadcast signed txn to BlockChain
+- `GET /get-balance` - Query USDT balance across chains
+- `GET /get-gas-price` - Estimate current network fees
+
+**Configuration**:
+- Environment variables for:
+  - `MASTER_MNEMONIC` - HD wallet for signing operations
+  - `ALLOWED_ORIGIN` - CORS whitelist
+  - `THIRDWEB_SECRET_KEY` - AA infrastructure credentials
+  - Chain RPC endpoints and bundler addresses
+
+**Tech Stack**:
+- Express.js 5.1 (Node.js HTTP server)
+- ethers.js 6.15 for blockchain interaction
+- Thirdweb SDK 5.119 for ERC-4337 account abstraction
+- CORS-enabled for frontend communication
 
 ---
 
-## System Requirements
+## System Integration
 
-### Frontend-UI
-- Node.js 18+
-- npm or yarn package manager
-- Environment variables for backend URLs and authentication
+### Request Flow: "Post an Invoice"
 
-### IFRS_Backend
-- Python 3.11+
-- PostgreSQL 15+
-- Redis 7+ (for Celery task queue)
-- Docker (recommended for containerized deployment)
+```
+1. User uploads invoice PDF
+        ↓
+2. Frontend-UI → Google Vertex AI
+   (Extract invoice details)
+        ↓
+3. Frontend-UI → IFRS_Backend POST /documents/
+   (Validate and store)
+        ↓
+4. IFRS_Backend runs deterministic ownership check
+   (Verify invoice belongs to this business)
+        ↓
+5. If valid → Auto-post to double-entry ledger
+   Creates: DR [Accounts Receivable] = CR [Revenue]
+        ↓
+6. Ledger updated atomically in PostgreSQL
+   Account balances recalculated
+```
 
-### Local_Tetherware
-- Node.js 16+
-- Electron (build target)
-- Tether WDK access credentials
-- OpenClaw environment configuration
+### Request Flow: "Close Financial Year"
 
-### Node_Web3_Server
-- Node.js 16+
-- Blockchain RPC endpoints
-- Bundler service credentials
+```
+1. User says "close the year" via WhatsApp
+        ↓
+2. Message → IFRS_Backend WhatsApp webhook
+        ↓
+3. Google Gemini AI processes command
+   (Recognizes close_financial_period intent)
+        ↓
+4. IFRS_Backend computes:
+   - Depreciation on all fixed assets
+   - Net profit/loss for period
+   - Tax provisions
+        ↓
+5. Posts closing entries atomically:
+   - DR [Income] = CR [Retained Earnings]
+   - Records depreciation expense
+        ↓
+6. Marks financial period as CLOSED
+   Opens new period for next year
+```
+
+### Request Flow: "Pay a Vendor Bill"
+
+```
+1. User initiates bill payment in Local_Tetherware
+        ↓
+2. IFRS_Backend generates unsigned transaction intent:
+   "Transfer 500 USDT to vendor_wallet on Celo chain"
+        ↓
+3. Local_Tetherware downloads intent
+   Displays details: "Pay vendor X 500 USDT?"
+        ↓
+4. User enters PIN → Enclave decrypts seed phrase
+        ↓
+5. WDK Wallet signs transaction locally
+   (No key leaves the machine)
+        ↓
+6. Signed UserOp → Node_Web3_Server
+        ↓
+7. Node_Web3_Server constructs full UserOp
+   Submits to Pimlico bundler on Celo
+        ↓
+8. Bundler includes in batch → mints on-chain
+   IFRS_Backend marks as POSTED (immutable)
+```
 
 ## Getting Started
 
-### Quick Start
+### Prerequisites
 
-1. **Clone the repository**:
-   ```bash
-   git clone https://github.com/yourusername/AutoBooks-Finance-Tetherware.git
-   cd AutoBooks-Finance-Tetherware
-   ```
+- **All services**: Docker & Docker Compose (recommended)
+- **Frontend-UI**: Node.js 18+, npm/yarn
+- **IFRS_Backend**: Python 3.11+, PostgreSQL 15+, Redis 7+
+- **Local_Tetherware**: Node.js 16+, Electron build environment
+- **Node_Web3_Server**: Node.js 16+, blockchain RPC endpoints
 
-2. **Set up environment configuration**:
-   Each service requires environment variables. See the individual README files for detailed configuration instructions.
+### Quick Setup
 
-3. **Start services individually** (see respective README files):
-   - Frontend-UI development server
-   - IFRS_Backend Django application
-   - Local_Tetherware Electron application
-   - Node_Web3_Server Node process
-
-### Docker Deployment
-
-The IFRS_Backend includes Docker configuration:
+#### 1. Clone and Install
 
 ```bash
-cd IFRS_Backend
-docker-compose up
+git clone <repo-url>
+cd AutoBooks-Finance-Tetherware
+
+# Frontend
+cd Frontend-UI && npm install && cd ..
+
+# Backend
+cd IFRS_Backend && pip install -r requirements.txt && cd ..
+
+# Desktop
+cd Local_Tetherware && npm install && cd ..
+
+# Web3
+cd Node_Web3_Server && npm install && cd ..
 ```
 
-This starts PostgreSQL, Redis, and the Django application in containerized environments.
+#### 2. Environment Configuration
+
+Create `.env` files in each service:
+
+**IFRS_Backend/.env**:
+```
+GOOGLE_APPLICATION_CREDENTIALS=/path/to/gcp-key.json
+GCP_PROJECT_ID=your-project-id
+DATABASE_URL=postgresql://user:password@localhost:5432/autobooks
+REDIS_URL=redis://localhost:6379
+SECRET_KEY=your-django-secret-key
+TWILIO_ACCOUNT_SID=your-twilio-sid
+TWILIO_AUTH_TOKEN=your-twilio-token
+STRIPE_API_KEY=your-stripe-key
+```
+
+**Node_Web3_Server/.env**:
+```
+MASTER_MNEMONIC=your-wallet-seed-phrase
+ALLOWED_ORIGIN=http://localhost:3000
+THIRDWEB_SECRET_KEY=your-thirdweb-key
+```
+
+#### 3. Start Services
+
+```bash
+# Backend (Docker Compose)
+cd IFRS_Backend && docker-compose up -d
+
+# Frontend (dev server)
+cd Frontend-UI && npm run dev
+
+# Desktop
+cd Local_Tetherware && npm start
+
+# Web3 Relay
+cd Node_Web3_Server && npm start
+```
 
 ## Key Design Principles
 
-### Determinism
-All account validation and transaction logic is deterministic. Given the same input state and transaction, the system always produces the same output. This enables:
-- Reproducible audit trails
-- Consistent financial reporting across instances
-- Reliable blockchain state synchronization
+### 1. Determinism
+All account validation and transaction logic is deterministic:
+- Same input → Same output across all instances
+- Enables reproducible audit trails
+- Reliable blockchain synchronization
 
-### Separation of Concerns
+### 2. Separation of Concerns
 Each service owns its domain:
-- **Frontend-UI**: User interaction and presentation
-- **IFRS_Backend**: Financial logic and ledger state
-- **Local_Tetherware**: Key management and signing
-- **Node_Web3_Server**: Blockchain integration
+- **Frontend-UI**: Presentation & user interaction
+- **IFRS_Backend**: Financial logic & ledger state
+- **Local_Tetherware**: Key management & local signing  
+- **Node_Web3_Server**: Blockchain integration (stateless relay)
 
-### Non-Custodial Architecture
-Private keys remain under user control within the Local_Tetherware enclave. The IFRS_Backend and Frontend-UI never access cryptographic material directly.
+### 3. Non-Custodial Architecture
+Private keys never leave the Local_Tetherware enclave:
+- IFRS_Backend has zero access to cryptographic material
+- Frontend-UI cannot sign on its own
+- Only signed transactions reach blockchain
 
-### IFRS Compliance
-All account hierarchies, measurement rules, and reporting structures conform to IFRS for SMEs (2025 Third Edition). This ensures:
-- Regulatory alignment
-- Cross-system financial statement consistency
-- Proper deferred taxation and provisioning rules
+### 4. IFRS Compliance
+All account hierarchies conform to IFRS for SMEs (2025):
+- Ensures regulatory alignment
+- Cross-system consistency
+- Proper deferred taxation and provisioning
 
-## API Contracts
+### 5. AI-Augmented Finance
+Google Vertex AI enables:
+- Intelligent document classification (invoice vs. bill vs. expense)
+- Automatic field extraction (amounts, vendors, dates)
+- Conversational financial queries (WhatsApp voice commands)
+- Autonomous approval workflows
+
+## API Documentation
 
 ### Frontend-UI ↔ IFRS_Backend
-- REST API on `http://localhost:8000/api/`
-- Endpoints for transaction posting, account queries, and report generation
-- JWT-based authentication
+
+**REST API Base URL**: `http://localhost:8000/api/`
+
+**Key Endpoints**:
+
+| Method | Endpoint | Purpose |
+|--------|----------|---------|
+| POST | `/auth/signup/` | User registration |
+| POST | `/auth/token/` | Get JWT access token |
+| GET | `/business/profile/` | Get company info |
+| POST | `/documents/` | Upload and ingest document |
+| GET | `/documents/` | List documents |
+| POST | `/documents/{id}/post/` | Post document to ledger |
+| GET | `/balance-sheet/` | Get balance sheet (current period) |
+| GET | `/pnl/` | Get profit & loss statement |
+| GET | `/cashflow/` | Get cash flow statement |
+| GET | `/journal-entries/` | Get all journal entries |
+| POST | `/transactions/` | Create manual transaction |
+| GET | `/financial-periods/` | List periods |
+| POST | `/financial-periods/{id}/close/` | Close period (year-end) |
+| POST | `/manual-adjustment/` | Post depreciation/adjustment |
+
+**Authentication**: JWT Bearer token in `Authorization` header
+
+```bash
+curl -H "Authorization: Bearer <token>" http://localhost:8000/api/balance-sheet/
+```
 
 ### IFRS_Backend ↔ Local_Tetherware
-- IPC (Inter-Process Communication) via local socket
-- Transaction payload submission and signature receipt
-- Deterministic payload signing with WDK
 
-### Node_Web3_Server ↔ Blockchain
-- JSON-RPC via blockchain provider endpoints
-- ERC-4337 bundler contract interface
-- Standard ethers.js v6 provider abstraction
+**IPC/HTTP via local socket** or HTTP on `http://localhost:8000/api/web3/`
 
-## Monitoring and Logging
+**Endpoints**:
+- `GET /api/web3/signing-intent/{doc_id}/` - Get unsigned transaction
+- `POST /api/web3/sign-receipt/` - Submit signed transaction hash
 
-- **Frontend-UI**: Browser console and Vercel Analytics
-- **IFRS_Backend**: Django logging and Flower (Celery monitoring)
-- **Local_Tetherware**: Electron main/renderer process logs
-- **Node_Web3_Server**: Node.js console and file-based logging
+### Node_Web3_Server API
+
+**Base URL**: `http://localhost:4000/`
+
+**Endpoints**:
+
+```bash
+# Encode transaction
+POST /encode-intent
+{
+  "chainId": "42161",
+  "recipientWallet": "0x...",
+  "amountUsdt": "500.00"
+}
+
+# Submit signed transaction
+POST /submit-transaction
+{
+  "signedTx": "0x...",
+  "chainId": "42161"
+}
+
+# Get balance
+GET /get-balance?wallet=0x...&chainId=42161
+
+# Get gas price
+GET /get-gas-price?chainId=42161
+```
 
 ## Security Considerations
 
-1. **Key Management**: All private keys are isolated within Local_Tetherware. Never transmit or log cryptographic material.
-2. **API Authentication**: Use JWT tokens for service-to-service communication.
-3. **Database Access**: PostgreSQL should run behind a private network interface.
-4. **Environment Variables**: Sensitive configuration must be loaded from secure vaults, not hardcoded.
-5. **Audit Logging**: All financial operations are logged with user identity and timestamp.
+1. **Key Management**:
+   - Private keys isolated in Local_Tetherware only
+   - Never log or transmit seed phrases
+   - Use AES-256-GCM encryption for storage
+
+2. **API Authentication**:
+   - JWT tokens expire after configurable duration
+   - Refresh tokens for session extension
+   - HTTPS required in production
+
+3. **Database Security**:
+   - PostgreSQL behind private network
+   - Use parameterized queries (Django ORM)
+   - Enable row-level security for multi-tenancy
+
+4. **Blockchain Security**:
+   - Validate gas estimates before signing
+   - Check recipient addresses against whitelist
+   - Rate-limit transaction submissions
+
+5. **Audit Logging**:
+   - All financial operations logged with user ID
+   - Immutable transaction records in PostgreSQL
+   - Monitor for anomalous access patterns
+
+## Deployment
+
+### Live Environments
+
+- **Frontend-UI**: Hosted on **Vercel** ([Link](https://autobooks-frontend.vercel.app))
+- **IFRS_Backend**: Hosted on **Google Cloud Run** with **Cloud SQL** for PostgreSQL ([Link](https://autobooks-backend-571147915643.us-central1.run.app))
+- **Node_Web3_Server**: Hosted on **Render** ([Link](https://node-web3-server.onrender.com))
+- **Local_Tetherware**: Runs locally on the user's host machine as a hardened Electron app.
+
+### Production Checklist
+
+- [x] Configure GCP project and Vertex AI API access
+- [x] Set up PostgreSQL 15+ with Cloud SQL backups
+- [x] Deploy IFRS_Backend to Google Cloud Run
+- [x] Deploy Node_Web3_Server as a Render Web Service
+- [x] Deploy Frontend-UI to Vercel
+- [ ] Deploy Redis cluster for Celery (Optional for full-scale async)
+- [ ] Configure Stripe and Twilio accounts
+- [ ] Set up monitoring (Sentry, CloudWatch, Datadog)
+- [ ] Distribute Local_Tetherware desktop app via signed installer
+
+### Docker Deployment
+
+```bash
+cd IFRS_Backend
+docker-compose -f docker-compose.yaml up -d
+
+# Verify
+docker ps  # Should show Django, PostgreSQL, Redis containers
+docker logs -f <container_id>
+```
+
+## Monitoring & Logging
+
+- **Frontend-UI**: Browser console + Vercel Analytics
+- **IFRS_Backend**: Django logging + Flower (Celery monitoring) at `http://localhost:5555`
+- **Local_Tetherware**: Electron main/renderer logs in `~/.config/Tetherware/logs/`
+- **Node_Web3_Server**: Node.js console logs + structured JSON logging
 
 ## File Structure
 
 ```
 AutoBooks-Finance-Tetherware/
-├── Frontend-UI/              # Next.js dashboard
+├── Frontend-UI/              # Next.js 15 web dashboard
+│   ├── src/app/              # Next.js app router
+│   ├── src/components/       # React components
+│   ├── src/context/          # Authentication context
+│   ├── package.json
+│   └── README.md
 ├── IFRS_Backend/             # Django accounting engine
+│   ├── app/                  # Core Django app
+│   ├── autobooks/            # Django project settings
+│   ├── requirements.txt
+│   ├── docker-compose.yaml
+│   └── README.md
 ├── Local_Tetherware/         # Electron signing enclave
-├── Node_Web3_Server/         # Node.js blockchain relayer
+│   ├── src/app/              # Next.js renderer
+│   ├── main.js               # Electron main process
+│   ├── package.json
+│   └── README.md
+├── Node_Web3_Server/         # Express.js blockchain relay
+│   ├── index.js              # Main server
+│   ├── package.json
+│   └── README.md
 └── README.md                 # This file
 ```
+
+## Contributing
+
+Please ensure all code changes:
+1. Maintain deterministic output for financial operations
+2. Include unit tests with >80% coverage
+3. Follow IFRS for SMEs standards
+4. Document API changes in respective README
+
+## License
+
+Proprietary - AutoBooks Finance (Tetherware)
 
 ## Testing
 

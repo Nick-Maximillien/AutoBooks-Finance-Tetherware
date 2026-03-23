@@ -36,13 +36,13 @@ export default function CreateProfile() {
         },
       });
 
-      setMessage('✅ Profile created! WhatsApp Copilot activated.');
+      setMessage(' Profile created! WhatsApp Copilot activated.');
       setPhone('');
       setAddress('');
       setImage(null);
     } catch (err) {
       const axiosError = err as AxiosError;
-      console.error('❌ Failed to create profile:', axiosError.message);
+      console.error(' Failed to create profile:', axiosError.message);
       setError('Failed to create profile');
     }
   };

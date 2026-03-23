@@ -3,6 +3,9 @@
 import React, { useEffect, useState } from "react";
 import { getTokensFromLocalStorage, refreshAccessTokenIfNeeded } from "@utils/tokenUtils";
 
+/**
+ * Interface Definitions
+ */
 interface Account {
     code: string;
     name: string;
@@ -27,11 +30,20 @@ interface CashFlowData {
     net_change: number;
 }
 
+/**
+ * PnLAndCashFlow Component
+ * Renders IFRS-compliant Profit and Loss and Cash Flow statements.
+ * Synchronizes with the symbolic ledger backend via authenticated requests.
+ */
 export default function PnLAndCashFlow() {
-    const [pnl, setPnl] = useState<PnLData | null>(null);
+    const [pnl, setPnL] = useState<PnLData | null>(null);
     const [cashFlow, setCashFlow] = useState<CashFlowData | null>(null);
     const [loading, setLoading] = useState(true);
 
+    /**
+     * Data Acquisition
+     * Orchestrates simultaneous fetching of performance and liquidity data.
+     */
     async function fetchData() {
         try {
             const { accessToken, refreshToken } = getTokensFromLocalStorage();
@@ -47,10 +59,10 @@ export default function PnLAndCashFlow() {
                 }),
             ]);
 
-            if (pnlRes.ok) setPnl(await pnlRes.json());
+            if (pnlRes.ok) setPnL(await pnlRes.json());
             if (cashFlowRes.ok) setCashFlow(await cashFlowRes.json());
         } catch (err) {
-            console.error("Error fetching PnL or Cash Flow:", err);
+            console.error("Error fetching performance data:", err);
         } finally {
             setLoading(false);
         }
@@ -60,7 +72,10 @@ export default function PnLAndCashFlow() {
         fetchData();
     }, []);
 
-    // Strict IFRS formatting: Parentheses for negative balances/outflows
+    /**
+     * IFRS Number Formatting
+     * Implements standard accounting notation: parentheses for negative balances/outflows.
+     */
     const formatIFRS = (value: number | undefined) => {
         const num = Number(value || 0);
         if (num < 0) return `(${Math.abs(num).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })})`;
@@ -70,7 +85,10 @@ export default function PnLAndCashFlow() {
     if (loading) return <div className="loading">Generating IFRS Statements...</div>;
     if (!pnl || !cashFlow) return <div className="loading">No performance data found.</div>;
 
-    // Helper to render account lines, skipping empty balances per IFRS allowances
+    /**
+     * Account Row Renderer
+     * Iterates through subgroups and filters out inactive accounts with zero balances.
+     */
     const renderAccounts = (subgroups: Record<string, Subgroup>) => {
         if (!subgroups) return null;
         
@@ -80,7 +98,6 @@ export default function PnLAndCashFlow() {
 
             return (
                 <React.Fragment key={sg}>
-                    {/* Only show subgroup title if it's explicitly defined and not a catch-all 'Other' */}
                     {sg !== "Other" && (
                         <tr>
                             <td colSpan={3} className="subgroup-title">{sg}</td>
@@ -102,9 +119,7 @@ export default function PnLAndCashFlow() {
         <div className="sfp-container">
             <div className="sfp-grid">
                 
-                {/* ========================================================= */}
-                {/* STATEMENT OF PROFIT OR LOSS                               */}
-                {/* ========================================================= */}
+                {/* Statement of Profit or Loss */}
                 <div className="statement-col">
                     <header className="sfp-header">
                         <h1>Statement of Profit or Loss</h1>
@@ -152,9 +167,7 @@ export default function PnLAndCashFlow() {
                     </div>
                 </div>
 
-                {/* ========================================================= */}
-                {/* STATEMENT OF CASH FLOWS                                   */}
-                {/* ========================================================= */}
+                {/* Statement of Cash Flows */}
                 <div className="statement-col">
                     <header className="sfp-header">
                         <h1>Statement of Cash Flows</h1>
@@ -223,7 +236,7 @@ export default function PnLAndCashFlow() {
                     box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
                     font-family: 'Times New Roman', Times, serif;
                     color: #0f172a;
-                    box-sizing: border-box; /* Crucial to prevent padding from blowing out width */
+                    box-sizing: border-box;
                 }
                 .sfp-grid {
                     display: grid;
@@ -272,12 +285,10 @@ export default function PnLAndCashFlow() {
                     color: #475569;
                     margin: 0;
                 }
-                
-                /* IFRS Table Styles */
                 .sfp-table {
                     width: 100%;
                     border-collapse: collapse;
-                    font-size: 14px; /* Reduced to ensure horizontal fit */
+                    font-size: 14px;
                 }
                 .sfp-table th, .sfp-table td {
                     padding: 6px 0;
@@ -301,10 +312,8 @@ export default function PnLAndCashFlow() {
                 .amount-col {
                     text-align: right;
                     width: 30%;
-                    white-space: nowrap; /* Protects currencies from breaking */
+                    white-space: nowrap;
                 }
-                
-                /* Structural Typography */
                 .section-title {
                     font-weight: bold;
                     text-transform: uppercase;
@@ -319,24 +328,20 @@ export default function PnLAndCashFlow() {
                     padding-top: 0.5rem !important;
                 }
                 .indent {
-                    padding-left: 16px; /* Reduced to save space */
+                    padding-left: 16px;
                 }
-                
-                /* Account Rows */
                 .account-row td {
                     padding: 4px 0;
                 }
                 .account-name {
                     word-wrap: break-word;
-                    white-space: normal; /* Allows long string wrapping */
+                    white-space: normal;
                     line-height: 1.3;
                     padding-right: 8px;
                 }
                 .hover-highlight:hover {
                     background-color: #f8fafc;
                 }
-
-                /* Totals & Lines */
                 .subtotal-label {
                     font-weight: bold;
                     padding-top: 8px !important;
@@ -353,7 +358,7 @@ export default function PnLAndCashFlow() {
                 }
                 .total-value {
                     border-top: 1px solid #0f172a;
-                    border-bottom: 4px double #0f172a; /* Strict IFRS double underline */
+                    border-bottom: 4px double #0f172a;
                     font-weight: bold;
                     font-size: 15px;
                     padding-top: 8px !important;

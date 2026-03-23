@@ -3,41 +3,46 @@
 import React from 'react';
 import Link from 'next/link';
 
+/**
+ * AboutServicesPage Component
+ * Provides a comprehensive overview of the AutoBooks AI architecture,
+ * focusing on the Neurosymbolic framework and the Sovereign UI Navigator.
+ */
 export default function AboutServicesPage() {
   const services = [
     {
       title: "Autonomous Bookkeeping",
-      icon: "⚡",
+      icon: "",
       description:
         "Upload PDFs, images, or forward receipts via WhatsApp. Our neural engine extracts line items and enforces strict IFRS double-entry accounting rules instantly."
     },
     {
       title: "Sovereign CFO Copilot",
-      icon: "🤖",
+      icon: "",
       description:
         "Converse with your financial data via voice or text. Ask complex strategic questions, project cash flow, and receive real-time financial guidance."
     },
     {
-      title: "Web3 Treasury & Payroll",
-      icon: "🏦",
+      title: "Real-Time Analytics",
+      icon: "",
       description:
-        "Fund tax escrows, execute batched micro-payroll, and deploy yield autonomously across 10+ EVM chains using stablecoins (USDT/USDC)."
+        "Watch your P&L, Balance Sheet, and Cash Flow update instantly when transactions are posted. Interactive charts visualize your growth."
     },
     {
       title: "Ledger Overwatch",
-      icon: "🛡️",
+      icon: "",
       description:
         "Every AI action produces a strict audit trace. Review confidence scores, override classifications, and execute compliant journal reversals."
     },
     {
-      title: "Software-Defined Hardware Wallet",
-      icon: "🔐",
+      title: "Omnichannel Ingestion",
+      icon: "",
       description:
-        "A secure local enclave powered by the Tether WDK. Authorize AI financial intents without your private keys ever touching the cloud."
+        "Send a photo of an invoice, a voice note, or drag-and-drop documents. AutoBooks processes them seamlessly across all platforms."
     },
     {
       title: "Neurosymbolic Architecture",
-      icon: "🧠",
+      icon: "",
       description:
         "AI handles interpretation while the symbolic ledger enforces financial truth. This guarantees zero hallucinations about your money."
     }
@@ -46,7 +51,7 @@ export default function AboutServicesPage() {
   return (
     <div className="page-container">
 
-      {/* HERO */}
+      {/* Hero Section */}
       <section className="hero-section">
         <div className="badge">About AutoBooks AI</div>
         <h1 className="hero-title">
@@ -54,23 +59,23 @@ export default function AboutServicesPage() {
         </h1>
         <p className="hero-subtitle">
           AutoBooks AI eliminates the manual mechanics of accounting by
-          combining autonomous bookkeeping, a sovereign AI financial
-          copilot, and detethered Web3 treasury management.
+          combining autonomous bookkeeping with a sovereign AI financial
+          copilot.
         </p>
       </section>
 
-      {/* PROBLEM */}
+      {/* Problem Identification */}
       <section className="text-section">
         <h2>The Problem with AI in Finance</h2>
         <p>
           Traditional Large Language Models are probability engines. They
           predict words — they do not guarantee mathematical truth. When used
           directly in financial systems they can hallucinate numbers, leading
-          to inaccurate balance sheets and dangerous business decisions. Furthermore, giving an AI access to execute payments traditionally requires surrendering custody of your funds.
+          to inaccurate balance sheets and dangerous business decisions.
         </p>
       </section>
 
-      {/* SOLUTION */}
+      {/* Neurosymbolic Solution Framework */}
       <section className="highlight-box">
         <h2>Our Solution: Neurosymbolic AI</h2>
         <p className="box-intro">We engineered a radical new architecture. AutoBooks operates on a strict framework that separates language generation from computable law:</p>
@@ -84,24 +89,21 @@ export default function AboutServicesPage() {
           <li>
             <strong>The Neural Layer</strong> – An AI copilot (Gemini) that reads the
             ledger's verified numbers and translates them into strategic,
-            human-readable advice. It prepares intents but lacks signing authority.
-          </li>
-          <li>
-            <strong>The Enclave Layer (Web3)</strong> – A localized, air-gapped signing environment. It sweeps the cloud for pending intents and signs them locally, ensuring absolute self-custody.
+            human-readable advice. It is entirely stripped of calculation rights.
           </li>
         </ul>
 
         <p className="conclusion">
           The result is an enterprise-safe financial AI that can read your
-          documents, execute double-entry bookkeeping, and manage your Web3 treasury
-          without ever hallucinating numbers or compromising your private keys.
+          documents, execute double-entry bookkeeping, and guide your business
+          without ever hallucinating numbers.
         </p>
       </section>
 
-      {/* UI NAVIGATOR CALLOUT - THE PROFOUND INNOVATION */}
+      {/* Sovereign UI Navigator Innovation */}
       <section className="navigator-showcase">
         <div className="navigator-content">
-          <div className="nav-badge">✦ Breakthrough Feature</div>
+          <div className="nav-badge">Breakthrough Feature</div>
           <h2>The Sovereign UI Navigator</h2>
           <p>
             Experience financial ingestion like never before. Launch the UI Navigator to share your screen with the AI. Simply display an invoice, bill, or receipt on your monitor, and press the microphone to give the agent a voice command.
@@ -109,8 +111,8 @@ export default function AboutServicesPage() {
           <p>
             The agent will visually scan your screen, extract the financial data, read it back to you, and autonomously execute the double-entry journal posting while providing a full visual audit trace in real-time.
           </p>
-          <Link href="/ui_navigator" className="nav-launch-btn">
-            Launch UI Navigator →
+          <Link href="/ui-navigator" className="nav-launch-btn">
+            Launch UI Navigator
           </Link>
         </div>
         <div className="navigator-visual">
@@ -121,31 +123,7 @@ export default function AboutServicesPage() {
         </div>
       </section>
 
-      {/* WEB3 ENCLAVE CALLOUT */}
-      <section className="navigator-showcase web3-showcase">
-        <div className="navigator-visual">
-          <div className="mock-enclave">
-             <span className="lock-icon">🔒</span>
-             <span>ENCLAVE SECURED</span>
-             <div className="pulse-dot"></div>
-          </div>
-        </div>
-        <div className="navigator-content">
-          <div className="nav-badge web3-badge">✦ Web3 Infrastructure</div>
-          <h2>Detethered Treasury Execution</h2>
-          <p>
-            Giving AI the power to move money shouldn't mean giving up control. We built a Software-Defined Hardware Wallet using the Tether WDK and Account Abstraction (ERC-4337).
-          </p>
-          <p>
-            When your AI CFO decides to run payroll or deploy yield, it queues an unsigned payload in the cloud. Your local desktop Enclave detects the intent, prompts for your PIN, and signs the transaction locally via AES-256 encryption. The cloud agent gets the agency; you keep the custody.
-          </p>
-          <Link href="/admin" className="nav-launch-btn web3-btn">
-            Configure Treasury →
-          </Link>
-        </div>
-      </section>
-
-      {/* SERVICES */}
+      {/* Technical Capabilities Grid */}
       <section className="services-section">
         <h2 className="services-title">Platform Capabilities</h2>
         <div className="services-grid">
@@ -159,7 +137,7 @@ export default function AboutServicesPage() {
         </div>
       </section>
 
-      {/* VALUES */}
+      {/* Organizational Principles */}
       <section className="values-section">
         <h2>Our Core Tenets</h2>
         <div className="values-grid">
@@ -184,16 +162,10 @@ export default function AboutServicesPage() {
               Ledger Overwatch and transparent visual audit trails.
             </p>
           </div>
-          <div className="value-card">
-            <h3>04. Self-Custodial Security</h3>
-            <p>
-              We bridge AI and Web3 without compromising sovereignty. Your private keys never touch our cloud infrastructure.
-            </p>
-          </div>
         </div>
       </section>
 
-      {/* CTA */}
+      {/* Call to Action */}
       <section className="cta-section">
         <h2>Experience Autonomous Accounting</h2>
         <p>Join the next generation of financial infrastructure.</p>
@@ -205,13 +177,12 @@ export default function AboutServicesPage() {
       <style jsx>{`
         .page-container {
           min-height: 100vh;
-          background: #020617; /* Deep Slate */
+          background: #020617; 
           color: #f8fafc;
           font-family: 'Inter', system-ui, sans-serif;
           padding: 5rem 2rem;
         }
 
-        /* --- HERO --- */
         .hero-section {
           text-align: center;
           max-width: 800px;
@@ -255,7 +226,6 @@ export default function AboutServicesPage() {
           margin: 0 auto;
         }
 
-        /* --- SECTIONS --- */
         .text-section {
           max-width: 850px;
           margin: 0 auto 5rem;
@@ -274,7 +244,6 @@ export default function AboutServicesPage() {
           line-height: 1.8;
         }
 
-        /* --- HIGHLIGHT BOX (Solution) --- */
         .highlight-box {
           max-width: 900px;
           margin: 0 auto 6rem;
@@ -309,7 +278,7 @@ export default function AboutServicesPage() {
         }
 
         .feature-list li::before {
-          content: '✦';
+          content: '-';
           position: absolute;
           left: 0;
           color: #38bdf8;
@@ -328,7 +297,6 @@ export default function AboutServicesPage() {
           font-size: 1.1rem;
         }
 
-        /* --- SHOWCASES --- */
         .navigator-showcase {
           max-width: 1000px;
           margin: 0 auto 6rem;
@@ -343,11 +311,6 @@ export default function AboutServicesPage() {
           box-shadow: inset 0 0 40px rgba(56, 189, 248, 0.05);
         }
 
-        .web3-showcase {
-          background: linear-gradient(135deg, rgba(16, 185, 129, 0.05) 0%, rgba(2, 6, 23, 0) 100%);
-          border-color: rgba(16, 185, 129, 0.15);
-        }
-
         .nav-badge {
           display: inline-block;
           color: #fcd34d;
@@ -356,10 +319,6 @@ export default function AboutServicesPage() {
           letter-spacing: 0.05em;
           text-transform: uppercase;
           margin-bottom: 1rem;
-        }
-
-        .web3-badge {
-          color: #34d399;
         }
 
         .navigator-content h2 {
@@ -394,14 +353,6 @@ export default function AboutServicesPage() {
           background: #7dd3fc;
         }
 
-        .web3-btn {
-          background: #10b981;
-          box-shadow: 0 4px 14px rgba(16, 185, 129, 0.4);
-        }
-        .web3-btn:hover {
-          background: #34d399;
-        }
-
         .navigator-visual {
           width: 100%;
           height: 300px;
@@ -432,31 +383,6 @@ export default function AboutServicesPage() {
           animation: scan 3s linear infinite;
         }
 
-        .mock-enclave {
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          gap: 1rem;
-          color: #34d399;
-          font-family: 'ui-monospace', monospace;
-          font-weight: 700;
-          letter-spacing: 0.1em;
-        }
-
-        .lock-icon {
-          font-size: 3rem;
-        }
-
-        .pulse-dot {
-          width: 12px;
-          height: 12px;
-          background: #10b981;
-          border-radius: 50%;
-          box-shadow: 0 0 15px #10b981;
-          animation: pulse 2s infinite;
-        }
-
-        /* --- SERVICES --- */
         .services-section {
           margin-bottom: 6rem;
         }
@@ -516,7 +442,6 @@ export default function AboutServicesPage() {
           line-height: 1.6;
         }
 
-        /* --- VALUES --- */
         .values-section {
           margin-bottom: 6rem;
         }
@@ -530,9 +455,9 @@ export default function AboutServicesPage() {
 
         .values-grid {
           display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+          grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
           gap: 2rem;
-          max-width: 1100px;
+          max-width: 1000px;
           margin: auto;
         }
 
@@ -557,7 +482,6 @@ export default function AboutServicesPage() {
           margin: 0;
         }
 
-        /* --- CTA --- */
         .cta-section {
           text-align: center;
           padding: 4rem 2rem;
@@ -605,21 +529,15 @@ export default function AboutServicesPage() {
           100% { top: 100%; opacity: 0; }
         }
 
-        @keyframes pulse {
-          0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
-          70% { transform: scale(1); box-shadow: 0 0 0 10px rgba(16, 185, 129, 0); }
-          100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+        @keyframes fadeUp {
+          from { opacity: 0; transform: translateY(20px); }
+          to { opacity: 1; transform: translateY(0); }
         }
 
-        /* RESPONSIVE */
         @media (max-width: 900px) {
           .navigator-showcase {
             grid-template-columns: 1fr;
             padding: 3rem 2rem;
-          }
-          .web3-showcase {
-            display: flex;
-            flex-direction: column-reverse;
           }
           .navigator-visual {
             height: 250px;

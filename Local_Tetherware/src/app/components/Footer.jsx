@@ -15,7 +15,7 @@ export default function Footer() {
           {/* Brand Column */}
           <div className="footer-brand">
             <Link href="/" className="logo-link">
-              <span className="hw-icon">🛡️</span>
+              <span className="hw-icon"></span>
               <div className="brand-text">
                 <span className="brand-title">TETHERWARE</span>
                 <span className="brand-sub">ENCLAVE</span>

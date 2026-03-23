@@ -10,7 +10,7 @@ export default function Docs() {
         
         <div className="hw-header">
           <div className="hw-header-left">
-            <span className="hw-terminal-icon">🗄️</span>
+            <span className="hw-terminal-icon"></span>
             <div className="hw-header-titles">
               <h1 className="hw-title">ENCLAVE_OPERATIONAL_MANUAL</h1>
               <span className="hw-subtitle">V.1.0 // TETHER_WDK_IMPLEMENTATION</span>
@@ -32,7 +32,7 @@ export default function Docs() {
               localStorage.setItem(<span className="code-string">"claware_encrypted_seed"</span>, encryptedSeed);
             </div>
             <p className="warning-text">
-              ⚠️ WARNING: Your unencrypted keys are NEVER transmitted to the cloud. If you lose your Device PIN, your assets are permanently unrecoverable unless you have exported the raw seed phrase.
+               WARNING: Your unencrypted keys are NEVER transmitted to the cloud. If you lose your Device PIN, your assets are permanently unrecoverable unless you have exported the raw seed phrase.
             </p>
           </div>
 

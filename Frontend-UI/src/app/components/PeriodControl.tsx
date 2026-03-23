@@ -58,7 +58,7 @@ export default function PeriodControl({ isExportDone = false }: PeriodControlPro
       <div className="content">
         {message ? (
           <div className={`message-box ${message.type}`}>
-            {message.type === 'success' ? '✅' : '❌'} {message.text}
+            {message.type === 'success' ? '' : ''} {message.text}
           </div>
         ) : !confirming ? (
           <>
@@ -72,12 +72,12 @@ export default function PeriodControl({ isExportDone = false }: PeriodControlPro
               onClick={() => setConfirming(true)}
               disabled={!isExportDone}
             >
-              {!isExportDone ? '🔒 Export Ledger to Unlock' : 'Initiate Period Close'}
+              {!isExportDone ? ' Export Ledger to Unlock' : 'Initiate Period Close'}
             </button>
           </>
         ) : (
           <div className="confirmation-zone">
-            <p className="warning-text">⚠️ <strong>IRREVERSIBLE ACTION:</strong> Are you absolutely sure you want to lock this period?</p>
+            <p className="warning-text"> <strong>IRREVERSIBLE ACTION:</strong> Are you absolutely sure you want to lock this period?</p>
             <div className="action-buttons">
               <button className="cancel-btn" onClick={() => setConfirming(false)} disabled={loading}>
                 Cancel

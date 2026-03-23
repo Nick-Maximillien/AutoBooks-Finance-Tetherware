@@ -198,7 +198,7 @@ export default function Uploader() {
       recorder.start();
       setIsRecording(true);
     } catch (e) {
-      setError("❌ Microphone access denied.");
+      setError(" Microphone access denied.");
     }
   };
 
@@ -217,7 +217,7 @@ export default function Uploader() {
       return (
         <div className="trace-board">
           <div className={`trace-banner ${isReview ? "banner-warn" : "banner-ok"}`}>
-            {isReview ? "🚨 REVIEW REQUIRED: AI HALTED" : "✅ DOCUMENT POSTED TO LEDGER"}
+            {isReview ? " REVIEW REQUIRED: AI HALTED" : " DOCUMENT POSTED TO LEDGER"}
           </div>
 
           {isReview && response.reason && (

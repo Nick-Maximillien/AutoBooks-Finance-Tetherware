@@ -11,7 +11,7 @@ export default function ShopperSignupToggle() {
   return (
     <div className="signup-portal">
       <button className="signup-toggle" onClick={toggleSignup}>
-        {isOpen ? '✕ Close Signup' : '🛍️ Signup as a Business'}
+        {isOpen ? '✕ Close Signup' : ' Signup as a Business'}
       </button>
 
       {isOpen && (

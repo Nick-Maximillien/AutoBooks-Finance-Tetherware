@@ -1,8 +1,10 @@
 """
-Web3 Integration Layer for Django <-> Node.js Web3 Bridge
-Handles all Web3 blockchain interactions for 10 chains.
-Encodes raw transaction data for the local OpenClaw Dumb Signer.
+Web3 Integration Layer: Django to Node.js Bridge
+Architectural Role: Stateless controller for multi-chain blockchain interactions.
+Functionality: Encodes raw transaction payloads for ERC-20 transfers and smart contract
+calls, allowing the local OpenClaw enclave to sign transactions without exposing private keys.
 """
+
 import os
 import requests
 import logging
@@ -12,19 +14,18 @@ from django.conf import settings
 
 logger = logging.getLogger(__name__)
 
-# --- Configuration ---
+# Global Configuration
 WEB3_API_URL = os.environ.get("WEB3_API_URL", "http://localhost:4000")
 WEB3_TIMEOUT = int(os.environ.get("WEB3_TIMEOUT", "30"))
 
 class Web3Error(Exception):
-    """Custom exception for web3 integration errors"""
+    """Exception raised for errors during Web3 bridge communication or encoding."""
     pass
 
 class Web3Agent:
     """
-    Stateless Web3 Controller for Autobooks Finance.
-    - Generates encoded transaction payloads for the local "Dumb Signer".
-    - Handles ERC20 encoding and Contract Address mapping for 10 chains.
+    Controller for generating encoded transaction intents across 10 EVM-compatible chains.
+    Handles contract address resolution and ERC-20 data padding for external signing elements.
     """
     def __init__(self, wallet_address: str):
         self.wallet_address = wallet_address
@@ -32,7 +33,7 @@ class Web3Agent:
         # Standard Aave-faucet USDT used across most Sepolia testnets
         std_usdt = "0xaA8E23Fb1079EA71e0a56F48a2aA51851D8433D0"
         
-        # Full 10-Chain Registry mapping 
+        # Multi-Chain Infrastructure Registry
         self.registry = {
             "ethereum-sepolia": {
                 "usdt": std_usdt,
@@ -87,23 +88,21 @@ class Web3Agent:
         }
 
     def _get_config(self, network: str):
+        """Resolves network string to internal registry configuration."""
         net = network.lower()
         if net == "sepolia" or net == "ethereum": net = "ethereum-sepolia"
         return self.registry.get(net, self.registry["ethereum-sepolia"])
 
     def _encode_erc20_transfer(self, recipient: str, amount: float, decimals: int = 6) -> str:
-        """Encodes transfer(address,uint256) data for USDT."""
+        """Manually encodes the transfer(address,uint256) function call for ERC-20 tokens."""
         method_id = "0xa9059cbb"
         address_padded = recipient.lower().replace("0x", "").zfill(64)
         amount_wei = int(float(amount) * (10 ** decimals))
         amount_hex = hex(amount_wei)[2:].zfill(64)
         return f"{method_id}{address_padded}{amount_hex}"
 
-    # =========================================================================
-    # 1. ENCODED INTENTS (For Dumb Enclave Signature)
-    # =========================================================================
-
     def build_settle_bill_intent(self, vendor_wallet: str, amount: float, currency: str = "USDT", network: str = "celo-sepolia") -> Dict:
+        """Constructs a payload for individual bill settlement via USDT or native transfer."""
         config = self._get_config(network)
         
         if currency == "USDT":
@@ -126,6 +125,7 @@ class Web3Agent:
         }
 
     def build_batch_payroll_intent(self, payroll_array: List[Dict], description: str = "", network: str = "celo-sepolia") -> Dict:
+        """Aggregates multiple employee salary transfers into a single atomic signing intent."""
         config = self._get_config(network)
         transactions = []
         
@@ -144,7 +144,7 @@ class Web3Agent:
         }
 
     def _encode_erc20_approve(self, spender: str, amount: float, decimals: int = 6) -> str:
-        """Encodes approve(address,uint256) data for USDT."""
+        """Manually encodes the approve(address,uint256) function call for ERC-20 tokens."""
         method_id = "0x095ea7b3"
         address_padded = spender.lower().replace("0x", "").zfill(64)
         amount_wei = int(float(amount) * (10 ** decimals))
@@ -152,15 +152,15 @@ class Web3Agent:
         return f"{method_id}{address_padded}{amount_hex}"
 
     def build_yield_deployment_intent(self, amount_to_deploy: float, description: str = "", network: str = "ethereum-sepolia") -> Dict:
+        """Encodes intent to transfer USDT to the optimized yield vault for treasury growth."""
         config = self._get_config(network)
         
-        # LOGIC: Call USDT Contract -> Transfer -> To Yield Vault
         return {
             "intent": "deploy-yield",
             "network": network,
             "transactions": [
                 {
-                    "to": config["usdt"], # The USDT Contract
+                    "to": config["usdt"],
                     "value": "0",
                     "data": self._encode_erc20_transfer(config["yield_vault"], amount_to_deploy)
                 }
@@ -168,6 +168,7 @@ class Web3Agent:
         }
 
     def build_tax_escrow_intent(self, tax_amount: float, description: str = "", network: str = "celo-sepolia") -> Dict:
+        """Encodes approval and deposit calls to lock required tax reserves into the on-chain escrow vault."""
         config = self._get_config(network)
         method_id = "0xb6b55f25" # deposit(uint256)
         amount_hex = hex(int(tax_amount * 10**6))[2:].zfill(64)
@@ -177,12 +178,12 @@ class Web3Agent:
             "network": network,
             "transactions": [
                 {
-                    "to": config["usdt"], # Approve the Escrow Contract first
+                    "to": config["usdt"],
                     "value": "0",
                     "data": self._encode_erc20_approve(config["tax_escrow"], tax_amount)
                 },
                 {
-                    "to": config["tax_escrow"], # Then call deposit on the Escrow Contract
+                    "to": config["tax_escrow"],
                     "value": "0",
                     "data": f"{method_id}{amount_hex}"
                 }
@@ -190,6 +191,7 @@ class Web3Agent:
         }
 
     def build_dividend_distribution_intent(self, shareholders_array: List[Dict], description: str = "", network: str = "celo-sepolia") -> Dict:
+        """Maps shareholder equity percentages to on-chain profit distribution payouts."""
         config = self._get_config(network)
         transactions = []
         
@@ -207,11 +209,8 @@ class Web3Agent:
             "transactions": transactions
         }
 
-    # =========================================================================
-    # 2. DIRECT CLOUD ACTIONS (Signed by Node.js Master Treasury)
-    # =========================================================================
-
     def request_liquidity(self, amount_usdt: float, network: str = "celo-sepolia") -> Dict:
+        """Executes a direct liquidity request from the Node.js Master Treasury for instant disbursement."""
         node_url = getattr(settings, "NODE_LIQUIDITY_URL", f"{WEB3_API_URL}/request-liquidity")
         try:
             response = requests.post(
@@ -226,13 +225,11 @@ class Web3Agent:
             raise Web3Error(f"Master Treasury disbursement failed: {str(e)}")
 
 class Web3Automation:
-    """
-    Autonomous treasury management calculations based on ledger triggers.
-    Watches P&L, cash flow, and compliance rules.
-    """
+    """Logic engine for autonomous treasury management triggers based on ledger activity."""
     
     @staticmethod
     def should_reserve_taxes(net_profit: Decimal, tax_rate: float = 0.30) -> Decimal:
+        """Calculates tax liability based on current period net profit."""
         return net_profit * Decimal(str(tax_rate)) if net_profit > 0 else Decimal("0.00")
 
     @staticmethod
@@ -240,6 +237,7 @@ class Web3Automation:
         available_cash: Decimal, 
         minimum_operating_reserve: Decimal = Decimal("100000.00")
     ) -> Decimal:
+        """Determines investable capital by comparing available cash against required operating reserves."""
         excess = available_cash - minimum_operating_reserve
         return excess if excess > Decimal("0.00") else Decimal("0.00")
 
@@ -249,6 +247,7 @@ class Web3Automation:
         net_profit: Decimal,
         monthly_budget: Optional[Decimal] = None
     ) -> List[Dict]:
+        """Maps employee roster data to valid blockchain transfer structures."""
         if not employees:
             return []
             
@@ -267,6 +266,7 @@ class Web3Automation:
         shareholders: List[Dict],
         total_dividend_pool: Decimal
     ) -> List[Dict]:
+        """Distributes a profit pool based on mathematical equity ownership mapped to Web3 wallets."""
         if not shareholders:
             return []
             

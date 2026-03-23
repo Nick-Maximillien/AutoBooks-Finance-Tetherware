@@ -4,36 +4,52 @@ import { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
 import { getTokensFromLocalStorage, refreshAccessTokenIfNeeded } from '../../utils/tokenUtils';
 
+/**
+ * UINavigator Component
+ * An autonomous agent interface that monitors screen data, extracts financial information,
+ * and maintains an execution trace for double-entry ledger reconciliation.
+ */
 export default function UINavigator() {
   const [isActive, setIsActive] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
   const [logs, setLogs] = useState<string[]>([]);
   
-  // NEW: State to hold the latest agentic response for visual tracing
+  /**
+   * Latest agentic response used for visual tracing and audit history
+   */
   const [lastResponse, setLastResponse] = useState<any | null>(null);
   
-  // Visual Refs
+  /**
+   * Visual and Video Capture Refs
+   */
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const lastFrameRef = useRef<string | null>(null);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Audio Recording Refs
+  /**
+   * Audio Processing Refs
+   */
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
 
-  // Synchronous Locks to prevent ghost polling and overlapping audio
+  /**
+   * Concurrency Locks
+   * Prevents race conditions during neural processing and overlapping audio playback.
+   */
   const isPausedRef = useRef(false);
   const isProcessingRef = useRef(false);
   const currentAudioRef = useRef<HTMLAudioElement | null>(null);
 
   const addLog = (msg: string) => {
-    // Keep more logs now that we have a taller terminal
     setLogs(prev => [msg, ...prev].slice(0, 15));
   };
 
-  // --- Shared Formatters for the Trace ---
+  /**
+   * Currency Formatter
+   * Standardizes amounts to KSH based on IFRS presentation standards.
+   */
   const formatCurrency = (amount: any) => {
     if (amount === undefined || amount === null) return 'KSH 0.00';
     const cleanAmount = typeof amount === 'string' ? amount.replace(/,/g, '') : amount;
@@ -43,6 +59,10 @@ export default function UINavigator() {
       .format(parsedNumber).replace('KES', 'KSH');
   };
 
+  /**
+   * IFRS Regulatory Mapping
+   * Resolves document types to specific accounting standards for the audit trace.
+   */
   const getIFRSRuleText = (type: string = '') => {
     switch (type.toLowerCase()) {
       case 'invoice': return "IFRS 15 (Revenue from Contracts): Recognized point-in-time revenue. Asset (Receivables) increased, Equity (Income) increased.";
@@ -54,6 +74,10 @@ export default function UINavigator() {
     }
   };
 
+  /**
+   * Agent Initialization
+   * Requests display media for screen monitoring and starts the polling interval.
+   */
   const startNavigator = async () => {
     try {
       const stream = await navigator.mediaDevices.getDisplayMedia({
@@ -72,7 +96,7 @@ export default function UINavigator() {
 
       stream.getVideoTracks()[0].onended = () => stopNavigator();
     } catch (err) {
-      addLog("❌ Screen share access denied.");
+      addLog("Screen share access denied.");
     }
   };
 
@@ -89,11 +113,14 @@ export default function UINavigator() {
       const tracks = (videoRef.current.srcObject as MediaStream).getTracks();
       tracks.forEach(track => track.stop());
     }
-    addLog("🛑 Agent Offline.");
+    addLog("Agent Offline.");
     setLastResponse(null);
   };
 
-  // --- Voice Command Handlers ---
+  /**
+   * Voice Command Lifecycle
+   * Captures user intent via audio and transmits it alongside the current visual frame.
+   */
   const startRecording = async () => {
     if (!isActive) return;
     try {
@@ -112,7 +139,7 @@ export default function UINavigator() {
         reader.readAsDataURL(audioBlob);
         reader.onloadend = () => {
           const base64Audio = reader.result as string;
-          addLog("🎙️ Voice command captured. Processing...");
+          addLog("Voice command captured. Processing...");
           captureAndSend(base64Audio);
         };
         stream.getTracks().forEach(t => t.stop());
@@ -120,9 +147,9 @@ export default function UINavigator() {
 
       recorder.start();
       setIsRecording(true);
-      addLog("🎤 Listening... (Release to transmit)");
+      addLog("Listening... (Release to transmit)");
     } catch (e) {
-      addLog("❌ Microphone access denied.");
+      addLog("Microphone access denied.");
     }
   };
 
@@ -133,7 +160,10 @@ export default function UINavigator() {
     }
   };
 
-  // --- The Single API Pipeline ---
+  /**
+   * Data Extraction Pipeline
+   * Captures screen frames and transmits payloads to the neural backend.
+   */
   const captureAndSend = async (audioDataB64: string | null) => {
     if (!videoRef.current || !canvasRef.current) return;
     
@@ -161,7 +191,7 @@ export default function UINavigator() {
     try {
       const { accessToken, refreshToken } = getTokensFromLocalStorage();
       if (!accessToken || !refreshToken) {
-        addLog("🔑 Error: Missing authentication tokens.");
+        addLog("Error: Missing authentication tokens.");
         stopNavigator();
         return;
       }
@@ -185,12 +215,10 @@ export default function UINavigator() {
       
       if (data.status === "ignored" && !data.audio_base64) return;
 
-      addLog(`⚙️ ${data.log_message || "Processing neural input..."}`);
+      addLog(`SYSTEM: ${data.log_message || "Processing neural input..."}`);
 
-      // 2. THE TRACE FIX: Securely merge states if voice command misses document
       if (data.status === "success" || data.status === "requires_human_review") {
         setLastResponse((prev: any) => {
-          // If voice command succeeded but didn't return the document data, inherit it!
           if (!data.document && prev?.document) {
             return { ...data, document: prev.document, ledger_entries: prev.ledger_entries };
           }
@@ -214,20 +242,20 @@ export default function UINavigator() {
       if (data.status === "requires_human_review") {
         setIsPaused(true);
         isPausedRef.current = true;
-        addLog(`🚨 REVIEW REQUIRED: ${data.reason}`);
+        addLog(`REVIEW REQUIRED: ${data.reason}`);
       }
 
       if ((data.status === "success" || data.status === "failed" || data.status === "ignored") && audioDataB64) {
         if (isPausedRef.current) {
             setIsPaused(false);
             isPausedRef.current = false;
-            addLog("▶️ Action confirmed. Autobooks Resumed.");
+            addLog("Action confirmed. Autobooks Resumed.");
         }
       }
 
     } catch (error) {
       console.error(error);
-      addLog("❌ Error: Neural link severed.");
+      addLog("Error: Neural link severed.");
     } finally {
       isProcessingRef.current = false;
     }
@@ -235,21 +263,19 @@ export default function UINavigator() {
 
   return (
     <div className="command-center">
-      {/* Top Navigation Bar */}
       <nav className="cc-nav">
         <div className="nav-brand">
-          <span className="brand-icon">⌘</span>
+          <span className="brand-icon">CMD</span>
           <h1>Sovereign Copilot</h1>
         </div>
         <div className="nav-links">
-          <Link href="/shopper_dashboard" className="nav-item">📊 Dashboard</Link>
-          <Link href="/reconciliation" className="nav-item">🔍 Ledger Overwatch</Link>
+          <Link href="/shopper_dashboard" className="nav-item">Dashboard</Link>
+          <Link href="/reconciliation" className="nav-item">Ledger Overwatch</Link>
         </div>
       </nav>
 
       <div className="cc-grid">
         
-        {/* LEFT PANEL: Controls & Terminal */}
         <div className="cc-panel left-panel">
           
           <div className="status-header">
@@ -267,7 +293,7 @@ export default function UINavigator() {
           <div className="control-deck">
             {!isActive ? (
               <button onClick={startNavigator} className="cc-btn start-btn">
-                ⚡ Initialize Autonomous Agent
+                Initialize Autonomous Agent
               </button>
             ) : (
               <div className="active-controls">
@@ -279,15 +305,15 @@ export default function UINavigator() {
                   onTouchEnd={stopRecording}
                   className={`cc-btn big-mic-btn ${isRecording ? 'is-recording' : ''}`}
                 >
-                  {isRecording ? "🎙️ Transmitting..." : "🎙️ HOLD TO SPEAK"}
+                  {isRecording ? "Transmitting..." : "HOLD TO SPEAK"}
                 </button>
                 
                 <div className="secondary-controls">
                   <button onClick={() => { setIsPaused(!isPaused); isPausedRef.current = !isPaused; }} className="cc-btn sec-btn pause-btn">
-                    {isPaused ? "▶️ Resume Agent" : "⏸️ Force Halt"}
+                    {isPaused ? "Resume Agent" : "Force Halt"}
                   </button>
                   <button onClick={stopNavigator} className="cc-btn sec-btn stop-btn">
-                    🛑 Disconnect
+                    Disconnect
                   </button>
                 </div>
               </div>
@@ -311,14 +337,12 @@ export default function UINavigator() {
 
         </div>
 
-        {/* RIGHT PANEL: Live Screen Feed & Execution Trace */}
         <div className="cc-panel right-panel">
           
-          {/* ALWAYS MOUNTED VIDEO TO MAINTAIN STREAM REFERENCE */}
           <div className={`video-container ${lastResponse ? 'minimized' : 'expanded'}`}>
             {!isActive && !lastResponse && (
               <div className="empty-state">
-                <div className="empty-icon">📡</div>
+                <div className="empty-icon">DATA</div>
                 <h3>Awaiting Visual Data</h3>
                 <p>Initialize the agent and share your screen. The AI will automatically extract, analyze, and post financial documents to the ledger.</p>
               </div>
@@ -332,7 +356,6 @@ export default function UINavigator() {
               className={`screen-feed ${isActive ? 'active-feed' : 'inactive-feed'}`} 
             />
 
-            {/* Scanning Laser Animation */}
             {isActive && !isPaused && !lastResponse && (
               <div className="scanning-overlay">
                 <div className="scan-line"></div>
@@ -341,12 +364,11 @@ export default function UINavigator() {
             )}
           </div>
 
-          {/* VISUAL TRACE INJECTION */}
           {lastResponse?.document && (
             <div className="trace-board custom-scrollbar">
               
               <div className={`trace-banner ${lastResponse.status === "requires_human_review" ? "banner-warn" : "banner-ok"}`}>
-                {lastResponse.status === "requires_human_review" ? "🚨 REVIEW REQUIRED: AUTONOMOUS POSTING HALTED" : "✅ DOCUMENT SUCCESSFULLY POSTED"}
+                {lastResponse.status === "requires_human_review" ? "REVIEW REQUIRED: AUTONOMOUS POSTING HALTED" : "DOCUMENT SUCCESSFULLY POSTED"}
               </div>
 
               <div className="info-cards">
@@ -364,26 +386,24 @@ export default function UINavigator() {
                 </div>
               </div>
 
-              <h3 className="timeline-title">Audit & Execution Trace</h3>
+              <h3 className="timeline-title">Audit and Execution Trace</h3>
               
               <div className="process-timeline">
-                {/* Step 1 */}
                 <div className="t-step">
                   <div className="t-marker">1</div>
                   <div className="t-content">
-                    <h4>Perception & AI Validation</h4>
+                    <h4>Perception and AI Validation</h4>
                     <div className="t-box ai-box">
                       {lastResponse.document.raw_text || "AI CAPTURE [Conf: 0.95]: Validated"}
                     </div>
                     {lastResponse.status !== "requires_human_review" && (
-                      <span className="t-tag tag-green">✓ Mathematical integrity verified</span>
+                      <span className="t-tag tag-green">Mathematical integrity verified</span>
                     )}
                   </div>
                 </div>
 
                 {lastResponse.status === "success" && (
                   <>
-                    {/* Step 2 */}
                     <div className="t-step">
                       <div className="t-marker">2</div>
                       <div className="t-content">
@@ -394,7 +414,6 @@ export default function UINavigator() {
                       </div>
                     </div>
 
-                    {/* Step 3 */}
                     <div className="t-step">
                       <div className="t-marker">3</div>
                       <div className="t-content">
@@ -417,7 +436,6 @@ export default function UINavigator() {
                               </>
                           ) : (
                               <>
-                                {/* FALLBACK MOCK IF BACKEND OMITTED ENTRIES DURING VOICE COMMAND */}
                                 {lastResponse.document.document_type === 'invoice' && (
                                   <>
                                     <div className="l-row l-dr"><span className="acc">DR: trade_and_other_receivables</span> <span className="amt">{formatCurrency(lastResponse.document.total)}</span></div>
@@ -451,13 +469,12 @@ export default function UINavigator() {
                       </div>
                     </div>
 
-                    {/* Subliminal Navigation CTA */}
                     <div className="cta-wrapper">
                       <Link href="/shopper_dashboard" className="nav-cta">
                         <div className="cta-content">
-                          <span className="icon">📊</span>
+                          <span className="icon">STAT</span>
                           <span>View Updated Statements in Dashboard</span>
-                          <span className="arrow">→</span>
+                          <span className="arrow">NEXT</span>
                         </div>
                       </Link>
                     </div>
@@ -469,21 +486,16 @@ export default function UINavigator() {
         </div>
       </div>
 
-      {/* Hidden Canvas Buffer (Only used for data extraction, doesn't need to be seen) */}
       <canvas ref={canvasRef} className="hidden" />
 
       <style jsx>{`
-        /* ===============================
-           Sovereign Control Center UI
-           =============================== */
-        
         .command-center, .command-center * {
-          box-sizing: border-box; /* CRITICAL FIX: Ensure padding doesn't break flex heights */
+          box-sizing: border-box;
         }
 
         .command-center {
           height: 100vh;
-          background: #020617; /* Deep slate */
+          background: #020617;
           color: #f8fafc;
           font-family: 'Inter', system-ui, sans-serif;
           display: flex;
@@ -491,7 +503,6 @@ export default function UINavigator() {
           overflow: hidden;
         }
 
-        /* --- Nav --- */
         .cc-nav {
           display: flex;
           justify-content: space-between;
@@ -539,13 +550,12 @@ export default function UINavigator() {
           background: rgba(255,255,255,0.1);
         }
 
-        /* --- Grid Layout --- */
         .cc-grid {
           display: grid;
           grid-template-columns: 400px 1fr;
           flex: 1;
           height: calc(100vh - 70px);
-          overflow: hidden; /* CRITICAL FIX: Constrain grid */
+          overflow: hidden;
         }
 
         .cc-panel {
@@ -553,7 +563,7 @@ export default function UINavigator() {
           display: flex;
           flex-direction: column;
           height: 100%;
-          overflow: hidden; /* CRITICAL FIX: Constrain panels */
+          overflow: hidden;
         }
 
         .left-panel {
@@ -561,7 +571,6 @@ export default function UINavigator() {
           border-right: 1px solid #1e293b;
         }
 
-        /* --- Status Header --- */
         .status-header {
           display: flex;
           align-items: center;
@@ -607,7 +616,6 @@ export default function UINavigator() {
           100% { transform: scale(0.95); opacity: 0.8; }
         }
 
-        /* --- Controls --- */
         .control-deck {
           margin-bottom: 32px;
           flex-shrink: 0;
@@ -672,8 +680,6 @@ export default function UINavigator() {
         .stop-btn { background: #334155; }
         .stop-btn:hover { background: #1e293b; }
 
-
-        /* --- Terminal --- */
         .terminal-wrapper {
           flex: 1;
           display: flex;
@@ -682,7 +688,7 @@ export default function UINavigator() {
           border: 1px solid #1e293b;
           border-radius: 12px;
           overflow: hidden;
-          min-height: 0; /* CRITICAL FIX */
+          min-height: 0;
         }
         .terminal-header {
           background: #0f172a;
@@ -704,7 +710,7 @@ export default function UINavigator() {
           gap: 8px;
           font-family: 'ui-monospace', 'Menlo', monospace;
           font-size: 0.85rem;
-          min-height: 0; /* CRITICAL FIX */
+          min-height: 0;
         }
         .term-line { line-height: 1.5; }
         .term-prefix { color: #38bdf8; margin-right: 8px; font-weight: bold; }
@@ -712,8 +718,6 @@ export default function UINavigator() {
         .term-old { color: #64748b; }
         .term-muted { color: #475569; font-style: italic; margin: auto; }
 
-
-        /* --- Right Panel (Video & Trace) --- */
         .right-panel {
           background: #0f172a;
           position: relative;
@@ -769,7 +773,6 @@ export default function UINavigator() {
         .empty-state h3 { color: #f8fafc; font-size: 1.5rem; margin-bottom: 12px; }
         .empty-state p { line-height: 1.6; }
 
-        /* The Sci-Fi Scanner Overlay */
         .scanning-overlay {
           position: absolute;
           top: 0; left: 0; right: 0; bottom: 0;
@@ -813,10 +816,9 @@ export default function UINavigator() {
           100% { top: 100%; opacity: 0; }
         }
 
-        /* --- Trace Board --- */
         .trace-board {
           flex: 1;
-          min-height: 0; /* CRITICAL FIX: Forces Flexbox to allow scroll */
+          min-height: 0;
           overflow-y: auto;
           padding-right: 16px;
           padding-bottom: 32px;
@@ -862,7 +864,6 @@ export default function UINavigator() {
           border-bottom: 1px solid #1e293b;
         }
 
-        /* --- Timeline Execution --- */
         .process-timeline {
           padding-left: 12px;
         }
@@ -945,9 +946,8 @@ export default function UINavigator() {
         }
         .tag-green { background: rgba(16, 185, 129, 0.15); color: #34d399; }
 
-        /* --- Navigation CTA --- */
         .cta-wrapper {
-          padding-bottom: 32px; /* Ensure space at bottom of scroll */
+          padding-bottom: 32px;
         }
         
         .nav-cta {
@@ -981,7 +981,6 @@ export default function UINavigator() {
         .cta-content .arrow { transition: transform 0.2s; }
         .nav-cta:hover .arrow { transform: translateX(6px); }
 
-        /* Custom Scrollbar */
         .custom-scrollbar::-webkit-scrollbar { width: 8px; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background: #334155; border-radius: 8px; }
         .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }

@@ -5,4 +5,4 @@ class AppConfig(AppConfig):
     name = 'app'
 
     def ready(self):
-        import app.signals  # ✅ This line must be inside the class
+        import app.signals  

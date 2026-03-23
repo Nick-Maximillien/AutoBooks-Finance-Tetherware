@@ -2,10 +2,9 @@
 
 import { useState } from 'react';
 import { useAuth } from 'context/AuthContext';
-import FarmerProfile from 'app/components/FarmerProfile';
+import FarmerProfile from 'app/components/BusinessProfile';
 import CreateProfileToggle from 'app/components/CreateProfileToggle';
 import Link from 'next/link';
-import OnWhatsappToggle from 'app/components/OnWhatsappToggle';
 import Uploader from 'app/components/AutoBooks';
 import BalanceSheetComponent from 'app/components/FinancialPosition';
 import PNLComponent from 'app/components/PNL';
@@ -47,7 +46,7 @@ export default function ShopperDashboard() {
   return (
     <div className="dashboardContainer">
 
-      <h2 className="dashboardHeading">📊 Business Dashboard</h2>
+      <h2 className="dashboardHeading"> Business Dashboard</h2>
 
       {/* === App Navigation Strip === */}
       <div className="app-nav">

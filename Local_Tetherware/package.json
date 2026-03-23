@@ -1,5 +1,5 @@
 {
-  "name": "agrosight-ai",
+  "name": "autobooks-finance",
   "version": "0.1.0",
   "author": "Nick Maximillien",
   "description": "TetherWare Secure Enclave",
@@ -14,17 +14,11 @@
     "electron:build": "next build && electron-builder"
   },
   "dependencies": {
-    "@dfinity/agent": "^3.2.7",
-    "@dfinity/auth-client": "^3.2.7",
-    "@dfinity/principal": "^3.2.7",
-    "@hello-pangea/dnd": "^18.0.1",
-    "@paypal/react-paypal-js": "^8.8.2",
     "@tetherto/wdk-wallet-evm-erc-4337": "1.0.0-beta.5",
     "@vercel/analytics": "^1.5.0",
     "axios": "^1.10.0",
     "crypto-js": "^4.2.0",
     "ethers": "^6.16.0",
-    "ic-stoic-identity": "^6.0.0",
     "next": "15.2.8",
     "postcss-loader": "^8.1.1",
     "react": "^19.0.0",
@@ -50,8 +44,8 @@
     "typescript": "^5"
   },
   "build": {
-    "appId": "com.agrosight.enclave",
-    "productName": "AgroSight Enclave",
+    "appId": "com.autobooks.enclave",
+    "productName": "Autobooks Enclave",
     "directories": {
       "output": "dist-desktop"
     },

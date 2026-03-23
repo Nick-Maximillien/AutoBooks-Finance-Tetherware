@@ -48,9 +48,7 @@ def add_doc(filename, title, issuer, recipient, doc_date, items, notes=""):
         "notes": notes
     })
 
-# ==========================================
-# PROCEDURAL GENERATION: THE 2026 LEDGER
-# ==========================================
+
 
 print("Initializing High-Fidelity 2026 Financial Matrix for Ithoka Computing...")
 
@@ -141,9 +139,7 @@ add_doc(
     [("Google Workspace Enterprise - Annual Sub", 5, 30000.00)], "Annual License. (Intangible Asset / Prepaid Expense)"
 )
 
-# ==========================================
-# PDF GENERATION ENGINE
-# ==========================================
+
 def generate_pdf(doc_data):
     filepath = os.path.join(OUTPUT_DIR, doc_data["filename"])
     
@@ -210,4 +206,4 @@ def generate_pdf(doc_data):
 for doc in documents:
     generate_pdf(doc)
 
-print(f"\n✅ SUCCESS: {len(documents)} High-Fidelity Financial Documents generated in '{OUTPUT_DIR}'!")
+print(f"\n SUCCESS: {len(documents)} High-Fidelity Financial Documents generated in '{OUTPUT_DIR}'!")

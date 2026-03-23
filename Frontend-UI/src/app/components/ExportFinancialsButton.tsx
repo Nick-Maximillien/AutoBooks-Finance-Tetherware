@@ -65,7 +65,7 @@ export default function ExportFinancialsButton({ onExportSuccess }: ExportProps)
         onClick={() => handleExport('excel')} 
         disabled={!!isExporting}
       >
-        {isExporting === 'excel' ? '⏳...' : '💾 Backup Excel'}
+        {isExporting === 'excel' ? '...' : ' Backup Excel'}
       </button>
       
       <button 
@@ -73,7 +73,7 @@ export default function ExportFinancialsButton({ onExportSuccess }: ExportProps)
         onClick={() => handleExport('pdf')} 
         disabled={!!isExporting}
       >
-        {isExporting === 'pdf' ? '⏳...' : '📄 IFRS PDF'}
+        {isExporting === 'pdf' ? '...' : ' IFRS PDF'}
       </button>
 
       <style jsx>{`

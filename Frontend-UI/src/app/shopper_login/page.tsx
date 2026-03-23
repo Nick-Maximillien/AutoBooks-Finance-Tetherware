@@ -11,7 +11,7 @@ export default function LoginToggle() {
   return (
     <div className="portal-container">
       <button className="portal-toggle" onClick={toggleLogin}>
-        {isOpen ? '✕ Close Business Portal' : '📑 Open Business Portal'}
+        {isOpen ? '✕ Close Business Portal' : ' Open Business Portal'}
       </button>
 
       {isOpen && (

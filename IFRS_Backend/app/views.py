@@ -50,16 +50,15 @@ from django.conf import settings
 logger = logging.getLogger(__name__)
 
 
-# --- Configuration ---
+# Configuration settings and external service credentials
 # Twillio credentials should be set in your environment variables for security. The WhatsApp number is typically the Twilio Sandbox number unless you have a dedicated one.
 TWILIO_ACCOUNT_SID = os.environ.get("TWILIO_ACCOUNT_SID")
 TWILIO_AUTH_TOKEN = os.environ.get("TWILIO_AUTH_TOKEN")
-TWILIO_WHATSAPP_NUMBER = os.environ.get("TWILIO_WHATSAPP_NUMBER") # Twilio Sandbox No.
+TWILIO_WHATSAPP_NUMBER = os.environ.get("TWILIO_WHATSAPP_NUMBER")  # Twilio Sandbox number
 # Vertex AI uses the Service Account JSON. Explicit project/location variables are optional 
 # but good practice. If GCP_PROJECT_ID is None, the SDK auto-discovers it from the JSON.
-# ----------------------------
-#  Setup GCP Credentials & Lazy Init TTS & Vertex AI)
-# ----------------------------
+# Setup GCP Credentials and initialize Vertex AI and Text-to-Speech clients
+# We import vertexai lazily inside the functions to prevent Server Boot Timeouts
 # We import vertexai lazily inside the functions to prevent Server Boot Timeouts
 # and Gunicorn Worker Deadlocks (gRPC fork safety).
 
@@ -83,14 +82,14 @@ def _get_vertex_client():
         return _VERTEX_CLIENT
     
     try:
-        logger.info(f"🔌 Connecting to Vertex AI (Project: {GCP_PROJECT_ID})...")
+        logger.info(f"Connecting to Vertex AI (Project: {GCP_PROJECT_ID})...")
         
         # In Cloud Run, it automatically uses the container's service account.
         # No JSON file required!
         _VERTEX_CLIENT = genai.Client(vertexai=True, project=GCP_PROJECT_ID, location=GCP_LOCATION)
         
         _VERTEX_INITIALIZED = True
-        logger.info("✅ Vertex AI Renderer Online.")
+        logger.info("Vertex AI Renderer Online.")
         return _VERTEX_CLIENT
     except Exception as e:
         logger.error(f"Vertex AI Lazy Init failed: {e}")
@@ -109,16 +108,18 @@ def get_realtime_usdt_kes_rate():
     except Exception as e:
         logger.warning(f"Crypto API Failed: {e}. Using fallback rate 130.00.")
     return Decimal("130.00")
-# ------------------------------------------------
-# UTILITY: Robust Agentic Ingestor (Safety Layer)
-# ------------------------------------------------
+
+
+# Robust Agentic Ingestor with Safety Layer
+# Surgically maps Pydantic Payload to Django Document Model with strict validation
 def ingest_agentic_payload(business, payload: AgenticPayload):
     """
     Surgically maps Pydantic Payload to Django Document Model.
     Ensures JSONFields are strictly validated and Decimals are rounded.
     """
     
-    # --- DETERMINISTIC AUDIT GATE: NORMALIZED OWNERSHIP CHECK ---
+    # Deterministic Audit Gate: Normalized Ownership Check
+    # Verifies that documents belong to the correct business entity
     def normalize_name(name):
         """Helper to strip punctuation, extra spaces, and common business suffixes."""
         if not name: return ""
@@ -161,31 +162,30 @@ def ingest_agentic_payload(business, payload: AgenticPayload):
             ownership_verified = True
             break
 
-    # HALT if we are trying to post someone else's document
+    # Halt if we are trying to post someone else's document
     if not ownership_verified and valid_owners:
         payload.requires_human_review = True
         primary_owner = business.business_name or business.user.username
-        payload.human_review_reason = f"I have detected Ownership Mismatch: This document does not appear to belong to '{primary_owner}'."
+        payload.human_review_reason = f"Ownership Mismatch detected: This document does not appear to belong to '{primary_owner}'."
 
-    # CAPTURE ORIGINAL AI DETECTION BEFORE FINAL BOSS OVERRIDE
+    # Capture original AI detection before any overrides
     original_ai_detection = payload.document_type.value
     
-    # ONLY trigger override if AI thought it was an invoice AND there's a mismatch
+    # Determine if entity mismatch override logic should trigger when AI detected an invoice
     final_boss_will_trigger = (
         payload.requires_human_review and 
         "Ownership Mismatch" in payload.human_review_reason and 
         original_ai_detection == "invoice"
     )
-    # --------------------------------------------
-    # FINAL BOSS: Entity Mismatch Override Logic
-    # ---------------------------------------------
-    # ACCOUNTANT'S RULE: If a document is not addressed to our business,
+    
+    # Entity Mismatch Override Logic
+    # Accountant's Rule: If a document is not addressed to our business,
     # it cannot be an invoice (revenue) we issued. It can only be an 
     # inbound bill (expense) from an external party.
     if final_boss_will_trigger:
         logger.warning(
-            f"FINAL BOSS Override: Document classified as '{payload.document_type.value}' "
-            f"but entity mismatch detected. Forcing to 'bill' (inbound expense). "
+            f"Document classification override: Document classified as '{payload.document_type.value}' "
+            f"but entity mismatch detected. Reclassifying as 'bill' (inbound expense). "
             f"Original AI detection was: {original_ai_detection}"
         )
         # Override document_type to bill using proper Enum syntax
@@ -425,9 +425,8 @@ class RevokeDocumentView(APIView):
             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
-# ===============================================
-# THE LIVE AGENT: 2-Gear UI Navigator View
-# ===============================================
+# Live Agent Stream Handler for Multimodal Input Processing
+# Handles unified processing of visual documents (images/PDFs) and voice commands
 class LiveAgentStreamView(APIView):
     """
     Unified Multimodal Pipeline.
@@ -493,9 +492,8 @@ class LiveAgentStreamView(APIView):
             f"  5. If the document acknowledges incoming investment money → 'equity_injection'."
         )
 
-        # ==========================================
-        # MODE A: VOICE COMMAND MODE (Immersive)
-        # ==========================================
+        # Voice Command Mode - Immersive Command Processing
+        # Executes user voice commands autonomously with access to ledger tools
         if audio_data_b64:
             audio_bytes = base64.b64decode(audio_data_b64.split(',')[1] if ',' in audio_data_b64 else audio_data_b64)
             audio_part = types.Part.from_bytes(data=audio_bytes, mime_type='audio/webm')
@@ -643,7 +641,8 @@ class LiveAgentStreamView(APIView):
                 if response.function_calls:
                     for call in response.function_calls:
                         
-                        # --- TOOL 1: Resolve Halted Document ---
+                        # Tool 1: Resolve Halted Document
+                        # Approve or reject a document pending review
                         if call.name == "resolve_pending_document":
                             args = call.args
                             action = args["action"].upper()
@@ -663,17 +662,16 @@ class LiveAgentStreamView(APIView):
                                 return Response({"status": "failed", "log_message": "Doc not found.", "audio_base64": fail_audio})
 
                             if action == "POST":
-                                # === THE THREE-LAYER CLASSIFICATION SYSTEM ===
-                                # Layer 1 (Smart): Improved prompt helps Gemini classify semantically
+                                # Three-Layer Classification System for Document Type Resolution
+                                # Layer 1 (Smart): Improved prompt helps AI classify semantically
                                 # Layer 2 (Legal): Final Boss override forces bill if entity mismatch
-                                # Layer 3 (Recovery): ai_detected_type preserves the logic chain
-                                # 
+                                # Layer 3 (Recovery): ai_detected_type preserves the original logic chain
                                 # Priority: User override → AI override → Original AI detection → Default
                                 provided_type = args.get("document_type")
                                 detected_type = provided_type or doc.ai_detected_type or "bill"
                                 doc.document_type = detected_type
                                 
-                            # ENFORCE IFRS COMPLIANCE dynamically via schemas.py
+                                # Enforce IFRS Compliance dynamically via schemas
                                 valid_expenses = [e.value for e in ExpenseCategory]
                                 valid_assets = [a.value for a in AssetClass]
                                 
@@ -692,7 +690,7 @@ class LiveAgentStreamView(APIView):
                                 # Explicitly fire the double entry logic now that the type is known
                                 doc.post_transaction()
                                 
-                                # *** AUTONOMOUS ECONOMIC ACTOR TRIGGER ***
+                                # Autonomous Economic Actor Trigger
                                 # If document is a bill with vendor wallet, execute autonomous settlement
                                 if doc.document_type == "bill" and doc.vendor and doc.total > 0:
                                     vendor_wallet = request.data.get("vendor_wallet_address")
@@ -744,7 +742,8 @@ class LiveAgentStreamView(APIView):
                                 # Return 'ignored' so the frontend clears the green success box and shows the blue info box instead
                                 return Response({"status": "ignored", "log_message": "Agent securely discarded the document.", "audio_base64": success_audio})
 
-                        # --- TOOL 2: Manual Adjustment ---
+                        # Tool 2: Manual Adjustment
+                        # Post double-entry manual adjustments to the ledger
                         elif call.name == "post_manual_adjustment":
                             args = call.args
                             debit_acc = Account.objects.filter(business=business, ifrs_account=args["debit_account"]).first()
@@ -765,7 +764,8 @@ class LiveAgentStreamView(APIView):
                             else:
                                 return Response({"status": "failed", "log_message": "Invalid accounts", "audio_base64": self.generate_tts_base64("I couldn't find those specific IFRS accounts.")})
 
-                        # --- Tool 3: Close Financial Period ---
+                        # Tool 3: Close Financial Period
+                        # Archive the current period and prepare for the next reporting cycle
                         elif call.name == "close_financial_period":
                             current_period = business.get_current_period()
                             if current_period.is_closed:
@@ -783,7 +783,8 @@ class LiveAgentStreamView(APIView):
                                     audio = self.generate_tts_base64("I encountered an error while trying to close the period.")
                                     return Response({"status": "failed", "log_message": str(e), "audio_base64": audio})
 
-                        # --- TOOL 4: Settle Vendor Bill (Queued for OpenClaw) ---
+                        # Tool 4: Settle Vendor Bill (Queued for Secure Signing)
+                        # Prepare a vendor payment transaction for user approval and blockchain execution
                         elif call.name == "settle_vendor_bill":
                             args = call.args or {}
                             network = args.get("network", business.primary_network)
@@ -1002,9 +1003,8 @@ class LiveAgentStreamView(APIView):
                 logger.error(f"Voice Command Failure: {e}")
                 return Response({"error": "Voice failure"}, status=500)
 
-        # ==========================================
-        # MODE B: BACKGROUND WATCHER (Your existing logic)
-        # ==========================================
+        # Background Watcher Mode - Automatic Document Detection
+        # Continuously monitors for financial documents and extracts relevant information
         img_hash = hashlib.md5(image_bytes).hexdigest()
         if cache.get(img_hash) in ['irrelevant', 'processed']:
             logger.info(f"LiveAgentStreamView: Image hash cached, skipping processing")
@@ -1080,7 +1080,7 @@ class LiveAgentStreamView(APIView):
                     "audio_base64": audio_b64
                 })
 
-            # === SUCCESSFUL POST: Return comprehensive audit trace ===
+            # Successful Post: Return comprehensive audit trace to user
             cache.set(img_hash, 'processed', 300)
             
             try:
@@ -1164,9 +1164,9 @@ class LiveAgentStreamView(APIView):
             logger.error(f"LiveAgentStreamView MODE B Exception: {str(e)}", exc_info=True)
             return Response({"error": str(e)}, status=400)
 
-# ---------------------------------------------
-# CFO INSIGHT GENERATOR (Personality Engine)
-# ---------------------------------------------
+
+# CFO Insight Generator - Personality and Language Engine
+# Transforms raw financial data into articulate, strategic insights
 def generate_cfo_insight(client, biz_name, query, data_context):
     """Feeds raw data back to Gemini for an empathetic, conversational response."""
     if not query: return "Here is the financial breakdown you requested:"
@@ -1196,10 +1196,9 @@ def generate_cfo_insight(client, biz_name, query, data_context):
         logger.error(f"CFO Insight Generator Failed: {e}")
         return "Here is the financial data you requested:"
 
-#------------------------------------------
-# THE WHATSAPP AGENT: Twilio Webhook View
-# -----------------------------------------
 
+# WhatsApp Agent Handler via Twilio Webhook
+# Receives WhatsApp messages with attachments and processes using the same neurosymbolic pipeline
 class WhatsAppWebhookView(APIView):
     """
     Receives WhatsApp messages (Text + PDFs/Images) via Twilio.
@@ -1230,7 +1229,7 @@ class WhatsAppWebhookView(APIView):
                 logger.error(f"Twilio Send Error: {e}")
 
         if not business:
-            send_whatsapp("❌ Unrecognized phone number. Please update your AutoBooks profile to include this number.")
+            send_whatsapp("ERROR: Unrecognized phone number. Please update your AutoBooks profile to include this number.")
             return HttpResponse(status=200)
 
         document_part = None
@@ -1241,7 +1240,7 @@ class WhatsAppWebhookView(APIView):
                 mime_type = media_type if media_type in ['application/pdf', 'image/jpeg', 'image/png', 'image/webp'] else 'image/jpeg'
                 document_part = types.Part.from_bytes(data=media_response.content, mime_type=mime_type)
             else:
-                send_whatsapp("❌ Error: Could not securely download the attached document from WhatsApp.")
+                send_whatsapp("ERROR: Could not securely download the attached document from WhatsApp.")
                 return HttpResponse(status=200)
         
         if not document_part and not incoming_msg:
@@ -1269,9 +1268,8 @@ class WhatsAppWebhookView(APIView):
             f"  5. If the document acknowledges incoming investment money → 'equity_injection'."
         )
 
-        # ==========================================
-        # MODE 1: AUTONOMOUS EXTRACTION (Image/PDF Sent)
-        # ==========================================
+        # Autonomous Extraction Mode
+        # Processes document extraction when image or PDF is sent
         if document_part:
             guidance = f"\nUser specifically commanded: '{incoming_msg}'. Obey this instruction." if incoming_msg else ""
             prompt = f"{dynamic_extraction_prompt}{guidance}"
@@ -1294,17 +1292,17 @@ class WhatsAppWebhookView(APIView):
                 ).exists()
 
                 if is_duplicate:
-                    send_whatsapp("⚠️ Duplicate blocked. This document is already in the ledger.")
+                    send_whatsapp("WARNING: Duplicate document detected. This document is already in the ledger.")
                     return HttpResponse(status=200)
 
                 document = ingest_agentic_payload(business, payload)
 
                 if payload.requires_human_review:
-                    msg = (f"🚨 *REVIEW NEEDED*\n\n"
-                           f"*Type:* {payload.document_type.value.replace('_', ' ').title()}\n"
-                           f"*Total:* KSH {payload.total:,.2f}\n"
-                           f"*Reason:* _{payload.human_review_reason}_\n\n"
-                           f"Reply with *'Proceed'* to post, or *'Cancel'* to discard.")
+                    msg = (f"REVIEW NEEDED\n\n"
+                           f"Type: {payload.document_type.value.replace('_', ' ').title()}\n"
+                           f"Total: KSH {payload.total:,.2f}\n"
+                           f"Reason: {payload.human_review_reason}\n\n"
+                           f"Reply with 'Proceed' to post, or 'Cancel' to discard.")
                     send_whatsapp(msg)
                 else:
                     # 1. FETCH RICH AUDIT TRACE
@@ -1312,39 +1310,38 @@ class WhatsAppWebhookView(APIView):
                     decision = ""
                     if txn and txn.entries.exists():
                         for entry in txn.entries.filter(entry_type="debit"):
-                            decision += f"✚ DR {entry.account.ifrs_account}: KSH {entry.amount:,.2f}\n"
+                            decision += f"[DEBIT] {entry.account.ifrs_account}: KSH {entry.amount:,.2f}\n"
                         for entry in txn.entries.filter(entry_type="credit"):
-                            decision += f"✖ CR {entry.account.ifrs_account}: KSH {entry.amount:,.2f}\n"
+                            decision += f"[CREDIT] {entry.account.ifrs_account}: KSH {entry.amount:,.2f}\n"
                     else:
-                        decision = "• Ledger entries generated implicitly.\n"
+                        decision = "[AUTO] Ledger entries generated implicitly.\n"
 
-                    # 2. CURRENT FINANCIAL POSITION
+                    # Current Financial Position
                     bs_data = business.get_balance_sheet()
-                    position = f"\n📊 *BALANCE SHEET IMPACT*\n"
+                    position = f"\nBALANCE SHEET IMPACT\n"
                     position += f"Assets: KSH {bs_data.get('assets', Decimal('0.00')):,.2f}\n"
                     position += f"Liabilities: KSH {bs_data.get('liabilities', Decimal('0.00')):,.2f}\n"
                     position += f"Equity: KSH {bs_data.get('equity', Decimal('0.00')):,.2f}\n"
 
-                    # 3. FIX "ENTITY: UNKNOWN" BUG by including all variables
+                    # Extract entity name from available fields for clarity
                     entity_name = payload.vendor or payload.customer or payload.loan_lender or payload.equity_investor or payload.billed_to or "Unknown"
                     
-                    msg = (f"✅ *POSTED TO LEDGER*\n"
+                    msg = (f"POSTED TO LEDGER\n"
                            f"ID #{document.id} ({payload.document_type.value.replace('_', ' ').title()}) from {entity_name}\n"
                            f"Total: KSH {payload.total:,.2f}\n\n"
-                           f"💼 *LEDGER ENTRIES*\n{decision}{position}")
+                           f"LEDGER ENTRIES\n{decision}{position}")
                     send_whatsapp(msg)
                 return HttpResponse(status=200)
                 
             except Exception as e:
                 logger.error(f"Extraction Failure: {e}")
-                send_whatsapp("❌ Failed to process document. Please ensure it is clear.")
+                send_whatsapp("FAILED: Could not process document. Please ensure it is clear and legible.")
                 return HttpResponse(status=200)
 
-        # ==========================================
-        # MODE 2: CHAT & COMMANDS (Text Sent Only)
-        # ==========================================
+        # Chat and Command Mode
+        # Processes text-only queries using context-aware financial insights
         else:
-            # --- MEMORY INJECTION: Fetch context BEFORE calling Gemini ---
+            # Fetch context before calling the AI model for proper grounding
             from django.db.models import Q
             pending = Document.objects.filter(
                 business=business
@@ -1572,7 +1569,8 @@ BEHAVIOR:
 
                 if response.function_calls:
                     for call in response.function_calls:
-                        # --- FINANCIAL QUERY TOOLS ---
+                        # Financial Query Tool Handlers
+                        # Retrieve and present financial statements and account information
                         if call.name == "get_balance_sheet":
                             bs_data = business.get_balance_sheet()
                             total_assets = bs_data.get("assets", Decimal("0.00"))
@@ -1583,10 +1581,10 @@ BEHAVIOR:
                             
                             response_text = f"""{insight}
 
-📊 *Balance Sheet* as at {date.today()}
-*Assets:* KSH {total_assets:,.2f}
-*Liabilities:* KSH {total_liabilities:,.2f}
-*Equity:* KSH {total_equity:,.2f}"""
+Balance Sheet as at {date.today()}
+Assets: KSH {total_assets:,.2f}
+Liabilities: KSH {total_liabilities:,.2f}
+Equity: KSH {total_equity:,.2f}"""
                             send_whatsapp(response_text)
                             continue
 
@@ -1600,10 +1598,10 @@ BEHAVIOR:
                             
                             response_text = f"""{insight}
 
-📈 *Profit & Loss* for current period
-*Income:* KSH {total_income:,.2f}
-*Expenses:* KSH {total_expenses:,.2f}
-*Net Profit:* KSH {net_profit:,.2f}"""
+Profit & Loss for current period
+Income: KSH {total_income:,.2f}
+Expenses: KSH {total_expenses:,.2f}
+Net Profit: KSH {net_profit:,.2f}"""
                             send_whatsapp(response_text)
                             continue
 
@@ -1618,11 +1616,11 @@ BEHAVIOR:
                             
                             response_text = f"""{insight}
 
-💰 *Cash Flow* for current period
-*Operating Activities:* KSH {operating:,.2f}
-*Investing Activities:* KSH {investing:,.2f}
-*Financing Activities:* KSH {financing:,.2f}
-*Net Cash Change:* KSH {net_change:,.2f}"""
+Cash Flow Statement for current period
+Operating Activities: KSH {operating:,.2f}
+Investing Activities: KSH {investing:,.2f}
+Financing Activities: KSH {financing:,.2f}
+Net Cash Change: KSH {net_change:,.2f}"""
                             send_whatsapp(response_text)
                             continue
 
@@ -1632,10 +1630,10 @@ BEHAVIOR:
                             
                             if account:
                                 insight = generate_cfo_insight(client, business.business_name, incoming_msg, f"Account {account.name} has a balance of KSH {account.balance}.")
-                                response_text = f"""{insight}\n\n💼 *{account.name}*\nBalance: KSH {account.balance:,.2f}"""
+                                response_text = f"""{insight}\n\nAccount: {account.name}\nBalance: KSH {account.balance:,.2f}"""
                                 send_whatsapp(response_text)
                             else:
-                                send_whatsapp(f"❌ Account '{account_code}' not found.")
+                                send_whatsapp(f"ERROR: Account '{account_code}' not found.")
                             continue
 
                         elif call.name == "get_recent_transactions":
@@ -1644,7 +1642,7 @@ BEHAVIOR:
                                 total_posted = sum([t.entries.filter(entry_type="debit").first().amount for t in txns if t.entries.filter(entry_type="debit").exists()])
                                 insight = generate_cfo_insight(client, business.business_name, incoming_msg, f"Showing last 5 transactions totaling KSH {total_posted}.")
                                 
-                                response_text = f"""{insight}\n\n📋 *Latest 5 Transactions*\n\n"""
+                                response_text = f"""{insight}\n\nLatest 5 Transactions\n\n"""
                                 for txn in txns:
                                     amount = txn.entries.filter(entry_type="debit").first()
                                     if amount:
@@ -1654,10 +1652,11 @@ BEHAVIOR:
                                 send_whatsapp("📭 No transactions posted yet. Start recording your first transaction!")
                             continue
 
-                        # --- DOCUMENT MANAGEMENT TOOLS ---
+                        # Document Management Tool Handlers
+                        # Approve or reject pending documents awaiting review
                         if call.name == "resolve_pending_document":
                             if not pending:
-                                send_whatsapp("❌ I could not find a pending document to resolve.")
+                                send_whatsapp("ERROR: Could not find a pending document to resolve.")
                                 return HttpResponse(status=200)
 
                             action = call.args["action"].upper()
@@ -1666,7 +1665,7 @@ BEHAVIOR:
                                 detected_type = provided_type or pending.ai_detected_type or "bill"
                                 pending.document_type = detected_type
                                 
-                                # ENFORCE IFRS COMPLIANCE dynamically via schemas.py
+                                # Enforce IFRS Compliance dynamically via schemas
                                 valid_expenses = [e.value for e in ExpenseCategory]
                                 valid_assets = [a.value for a in AssetClass]
                                 
@@ -1683,12 +1682,12 @@ BEHAVIOR:
                                 pending.save()
                                 pending.post_transaction()
                                 
-                                # === COMPREHENSIVE AUDIT MESSAGE ===
+                                # Comprehensive Audit Message with all transaction details
                                 try:
                                     txn = pending.transactions.first() if pending.transactions.exists() else None
                                     
-                                    # 1. AUDIT TRACE
-                                    audit_trace = f"📌 *AUDIT TRACE*\n"
+                                    # Audit Trace: Include all overrides and detections
+                                    audit_trace = f"AUDIT TRACE\n"
                                     if provided_type:
                                         audit_trace += f"• User Override: {provided_type}\n"
                                     if pending.ai_detected_type and pending.ai_detected_type != detected_type:
@@ -1696,36 +1695,36 @@ BEHAVIOR:
                                     elif pending.ai_detected_type:
                                         audit_trace += f"• AI Detected: {pending.ai_detected_type}\n"
                                     
-                                    # 2. DECISION REACHED
-                                    decision = f"\n💼 *LEDGER ENTRIES*\n"
+                                    # Decision and Ledger Entries
+                                    decision = f"\nLEDGER ENTRIES\n"
                                     if txn and txn.entries.exists():
                                         debits = txn.entries.filter(entry_type="debit")
                                         credits = txn.entries.filter(entry_type="credit")
                                         for entry in debits:
-                                            decision += f"✚ DR {entry.account.ifrs_account}: KSH {entry.amount:,.2f}\n"
+                                            decision += f"[DEBIT] {entry.account.ifrs_account}: KSH {entry.amount:,.2f}\n"
                                         for entry in credits:
-                                            decision += f"✖ CR {entry.account.ifrs_account}: KSH {entry.amount:,.2f}\n"
+                                            decision += f"[CREDIT] {entry.account.ifrs_account}: KSH {entry.amount:,.2f}\n"
                                     else:
                                         decision += "• Posting in progress...\n"
                                     
-                                    # 3. CURRENT FINANCIAL POSITION
+                                    # Current Financial Position
                                     bs_data = business.get_balance_sheet()
-                                    position = f"\n📊 *BALANCE SHEET IMPACT*\n"
+                                    position = f"\nBALANCE SHEET IMPACT\n"
                                     position += f"Assets: KSH {bs_data.get('assets', Decimal('0.00')):,.2f}\n"
                                     position += f"Liabilities: KSH {bs_data.get('liabilities', Decimal('0.00')):,.2f}\n"
                                     position += f"Equity: KSH {bs_data.get('equity', Decimal('0.00')):,.2f}\n"
                                     
                                     entity_name = pending.vendor or pending.customer or pending.loan_lender or pending.billed_to or "Unknown"
-                                    full_message = f"✅ *DOCUMENT POSTED*\nID #{pending.id} ({pending.document_type.replace('_', ' ').title()}) from {entity_name}\nTotal: KSH {pending.total:,.2f}\n\n{audit_trace}{decision}{position}"
+                                    full_message = f"DOCUMENT POSTED\nID #{pending.id} ({pending.document_type.replace('_', ' ').title()}) from {entity_name}\nTotal: KSH {pending.total:,.2f}\n\n{audit_trace}{decision}{position}"
                                     send_whatsapp(full_message)
                                 except Exception as e:
                                     logger.error(f"Audit message construction failed: {e}")
-                                    send_whatsapp(f"✅ *DOCUMENT POSTED*\nID #{pending.id} ({pending.document_type.replace('_', ' ').title()}) has been successfully posted to the ledger.")
+                                    send_whatsapp(f"DOCUMENT POSTED\nID #{pending.id} ({pending.document_type.replace('_', ' ').title()}) has been successfully posted to the ledger.")
                             
                             elif action == "REVOKE":
                                 pending_id = pending.id
                                 pending.delete()
-                                send_whatsapp(f"✅ *Got it.*\nDocument #{pending_id} has been securely discarded.")
+                                send_whatsapp(f"RECEIVED: Document #{pending_id} has been securely discarded.")
                             return HttpResponse(status=200)
 
                         elif call.name == "post_manual_adjustment":
@@ -1738,12 +1737,12 @@ BEHAVIOR:
                                     audit_desc = args.get("description", "WhatsApp Manual Adjustment")
                                     txn = Transaction.objects.create(business=business, description=audit_desc, is_manual_adjustment=True, status=TransactionStatus.POSTED)
                                     txn.post_transaction([{"ifrs_account": debit_acc.ifrs_account, "type": "debit", "amount": args["amount"]}, {"ifrs_account": credit_acc.ifrs_account, "type": "credit", "amount": args["amount"]}])
-                                send_whatsapp(f"✅ *Done.*\nI have posted KSH {args['amount']} to {debit_acc.name}.")
+                                send_whatsapp(f"COMPLETED: I have posted KSH {args['amount']} to {debit_acc.name}.")
 
                         elif call.name == "close_financial_period":
                             current_period = business.get_current_period()
                             if current_period.is_closed:
-                                send_whatsapp("❌ The current financial period is already closed.")
+                                send_whatsapp("ERROR: The current financial period is already closed.")
                             else:
                                 try:
                                     with db_transaction.atomic():
@@ -1751,10 +1750,10 @@ BEHAVIOR:
                                         business.start_new_period()
                                     
                                     insight = generate_cfo_insight(client, business.business_name, incoming_msg, "Period closed successfully. Depreciation calculated and Net Income transferred to Retained Earnings.")
-                                    send_whatsapp(f"✅ *YEAR-END CLOSE COMPLETE*\n\n{insight}\n\nThe ledger has been officially locked and rolled forward.")
+                                    send_whatsapp(f"YEAR-END CLOSE COMPLETE\n\n{insight}\n\nThe ledger has been officially locked and rolled forward.")
                                 except Exception as e:
                                     logger.error(f"AI Close Period Failed: {e}")
-                                    send_whatsapp(f"❌ Failed to close the period: {str(e)}")
+                                    send_whatsapp(f"ERROR: Failed to close the period: {str(e)}")
                             
                             return HttpResponse(status=200)
                         
@@ -1764,7 +1763,7 @@ BEHAVIOR:
                             try:
                                 amount_usdt = Decimal(str(args.get("amount_to_borrow", 0)))
                                 if amount_usdt <= 0:
-                                    send_whatsapp("❌ Please specify a valid amount to borrow.")
+                                    send_whatsapp("ERROR: Please specify a valid amount to borrow.")
                                     continue
                                 
                                 # AI Underwriting Logic (Collateralized by Data)
@@ -1778,11 +1777,11 @@ BEHAVIOR:
                                 max_borrow = max(total_assets * Decimal("0.20"), net_profit)
                                 
                                 if amount_usdt > max_borrow:
-                                    send_whatsapp(f"❌ *LOAN DENIED*\nBased on your IFRS ledger, your maximum approved liquidity advance is {max_borrow:,.2f} USDT.")
+                                    send_whatsapp(f"ERROR: LOAN DENIED\nBased on your IFRS ledger, your maximum approved liquidity advance is {max_borrow:,.2f} USDT.")
                                     continue
                                 
                                 if not business.wallet_address:
-                                    send_whatsapp("❌ Business Web3 Treasury not configured.")
+                                    send_whatsapp("ERROR: Business Web3 Treasury not configured.")
                                     continue
                                 
                                 node_url = getattr(settings, "NODE_LIQUIDITY_URL", "https://node-web3-server.onrender.com/request-liquidity")
@@ -1817,10 +1816,10 @@ BEHAVIOR:
                                         {"ifrs_account": "short_term_borrowings", "type": "credit", "amount": kes_value}
                                     ])
                                 
-                                send_whatsapp(f"✅ *LOAN APPROVED ON {network.upper()}*\n{amount_usdt:,.2f} USDT disbursed to your treasury.\nHash: {data.get('txHash')}")
+                                send_whatsapp(f"LOAN APPROVED ON {network.upper()}\n{amount_usdt:,.2f} USDT disbursed to your treasury.\nHash: {data.get('txHash')}")
                             except Exception as e:
                                 logger.error(f"AI Lending Error: {e}")
-                                send_whatsapp(f"❌ Loan disbursement failed: {str(e)}")
+                                send_whatsapp(f"ERROR: Loan disbursement failed: {str(e)}")
                             continue
 
                         elif call.name == "settle_vendor_bill":
@@ -1849,12 +1848,12 @@ BEHAVIOR:
                                         status=TransactionStatus.PENDING_SIGNATURE, document=doc
                                     )
                                     
-                                send_whatsapp(f"✅ *PAYMENT QUEUED*\nThe bill settlement for {usdt_amount} USDT is ready. Please sign the transaction locally via OpenClaw.")
+                                send_whatsapp(f"PAYMENT QUEUED\nThe bill settlement for {usdt_amount} USDT is ready. Please sign the transaction locally via OpenClaw.")
                             except Document.DoesNotExist:
-                                send_whatsapp(f"❌ Document #{args['document_id']} not found.")
+                                send_whatsapp(f"ERROR: Document #{args['document_id']} not found.")
                             except Exception as e:
                                 logger.error(f"AI Settlement Error: {e}")
-                                send_whatsapp("❌ Error generating settlement intent.")
+                                send_whatsapp("ERROR: Could not generate settlement intent.")
                             continue
 
                         elif call.name == "execute_micro_payroll":
@@ -1864,7 +1863,7 @@ BEHAVIOR:
                                 pnl_data = business.get_pnl()
                                 net_profit = pnl_data.get("totals", {}).get("INCOME", Decimal("0.00")) - pnl_data.get("totals", {}).get("EXPENSE", Decimal("0.00"))
                                 if net_profit <= 0:
-                                    send_whatsapp("❌ Cannot run payroll: Net profit is zero or negative.")
+                                    send_whatsapp("ERROR: Cannot run payroll - Net profit is zero or negative.")
                                     continue
                                     
                                 if not business.wallet_address:
@@ -1873,7 +1872,7 @@ BEHAVIOR:
                                     
                                 employees = business.employee_wallets or []
                                 if not employees:
-                                    send_whatsapp("❌ No employees found. Add wallet addresses first.")
+                                    send_whatsapp("ERROR: No employees found. Add wallet addresses first.")
                                     continue
                                     
                                 payroll_array = Web3Automation.get_payroll_distribution_strategy(employees, Decimal(str(net_profit)))
@@ -1896,10 +1895,10 @@ BEHAVIOR:
                                         status=TransactionStatus.PENDING_SIGNATURE, document=doc
                                     )
                                     
-                                send_whatsapp(f"✅ *PAYROLL QUEUED*\n{len(employees)} employees calculated for {total_payroll:,.2f} USDT total. Please sign via OpenClaw.")
+                                send_whatsapp(f"PAYROLL QUEUED\n{len(employees)} employees calculated for {total_payroll:,.2f} USDT total. Please sign via OpenClaw.")
                             except Exception as e:
                                 logger.error(f"AI Payroll Error: {e}")
-                                send_whatsapp(f"❌ Payroll intent generation failed: {str(e)}")
+                                send_whatsapp(f"ERROR: Payroll intent generation failed: {str(e)}")
                             continue
 
                         elif call.name == "optimize_treasury_yield":
@@ -1908,7 +1907,7 @@ BEHAVIOR:
                             try:
                                 amount_to_deploy = Decimal(str(args.get("amount_to_deploy", 0)))
                                 if amount_to_deploy <= 0:
-                                    send_whatsapp("❌ Invalid amount.")
+                                    send_whatsapp("ERROR: Invalid amount.")
                                     continue
                                     
                                 if not business.wallet_address:
@@ -1933,10 +1932,10 @@ BEHAVIOR:
                                         status=TransactionStatus.PENDING_SIGNATURE, document=doc
                                     )
                                     
-                                send_whatsapp(f"✅ *YIELD DEPLOYMENT QUEUED*\n{amount_to_deploy:,.2f} USDT ready for yield pool. Please sign via OpenClaw.")
+                                send_whatsapp(f"YIELD DEPLOYMENT QUEUED\n{amount_to_deploy:,.2f} USDT ready for yield pool. Please sign via OpenClaw.")
                             except Exception as e:
                                 logger.error(f"AI Yield Error: {e}")
-                                send_whatsapp(f"❌ Yield intent generation failed: {str(e)}")
+                                send_whatsapp(f"ERROR: Yield intent generation failed: {str(e)}")
                             continue
 
                         elif call.name == "distribute_dividends":
@@ -1945,7 +1944,7 @@ BEHAVIOR:
                             try:
                                 total_dividend = Decimal(str(args.get("total_amount", 0)))
                                 if total_dividend <= 0:
-                                    send_whatsapp("❌ Please specify a valid dividend amount.")
+                                    send_whatsapp("ERROR: Please specify a valid dividend amount.")
                                     continue
                                     
                                 if not business.wallet_address:
@@ -1955,7 +1954,7 @@ BEHAVIOR:
                                 cap_table = business.get_cap_table()
                                 valid_cap_table = [s for s in cap_table if s.get("wallet")]
                                 if not valid_cap_table:
-                                    send_whatsapp("❌ Shareholders found, but none have Web3 wallets configured.")
+                                    send_whatsapp("ERROR: Shareholders found, but none have Web3 wallets configured.")
                                     continue
                                     
                                 distribution_array = Web3Automation.calculate_dividend_distribution(valid_cap_table, total_dividend)
@@ -1977,10 +1976,10 @@ BEHAVIOR:
                                         status=TransactionStatus.PENDING_SIGNATURE, document=doc
                                     )
                                     
-                                send_whatsapp(f"✅ *DIVIDENDS QUEUED*\n{total_dividend:,.2f} USDT ready for {len(distribution_array)} shareholders. Please sign via OpenClaw.")
+                                send_whatsapp(f"DIVIDENDS QUEUED\n{total_dividend:,.2f} USDT ready for {len(distribution_array)} shareholders. Please sign via OpenClaw.")
                             except Exception as e:
                                 logger.error(f"AI Dividend Error: {e}")
-                                send_whatsapp(f"❌ Dividend intent generation failed: {str(e)}")
+                                send_whatsapp(f"ERROR: Dividend intent generation failed: {str(e)}")
                             continue
 
                         elif call.name == "fund_tax_escrow":
@@ -1989,7 +1988,7 @@ BEHAVIOR:
                             try:
                                 amount_usdt = Decimal(str(args.get("tax_amount", 0)))
                                 if amount_usdt <= 0:
-                                    send_whatsapp("❌ Invalid tax amount specified.")
+                                    send_whatsapp("ERROR: Invalid tax amount specified.")
                                     continue
                                     
                                 if not business.wallet_address:
@@ -2014,10 +2013,10 @@ BEHAVIOR:
                                         status=TransactionStatus.PENDING_SIGNATURE, document=doc
                                     )
                                     
-                                send_whatsapp(f"✅ *TAX ESCROW QUEUED*\n{amount_usdt:,.2f} USDT ready to be locked in vault. Please sign via OpenClaw.")
+                                send_whatsapp(f"TAX ESCROW QUEUED\n{amount_usdt:,.2f} USDT ready to be locked in vault. Please sign via OpenClaw.")
                             except Exception as e:
                                 logger.error(f"AI Tax Escrow Error: {e}")
-                                send_whatsapp(f"❌ Tax escrow intent generation failed: {str(e)}")
+                                send_whatsapp(f"ERROR: Tax escrow intent generation failed: {str(e)}")
                             continue
 
                 # Handle casual conversation when no tools are called
@@ -2032,9 +2031,8 @@ BEHAVIOR:
                 return HttpResponse(status=200)
 
 
-# ---------------------------------------------------
-# WEB CHAT ENDPOINT: Unified Multimodal Conduit
-# ---------------------------------------------------
+# Web Chat Endpoint - Unified Multimodal Conduit
+# Handles text, audio, and document uploads through a single API interface
 import traceback
 
 class WebChatView(APIView):
@@ -2080,12 +2078,12 @@ class WebChatView(APIView):
             pending_entity = pending.vendor or pending.customer or pending.loan_lender or pending.equity_investor or pending.billed_to or "Unknown"
             doc_context = f"CONTEXT: Document #{pending.id} for KSH {pending.total} from {pending_entity} is currently HALTED for your review{override_note}."
 
-        # ==========================================
-        # SCENARIO A: Document Upload via Chat
-        # ==========================================
+        # Scenario A: Document Upload via Chat
+        # Processes document images or PDFs sent through the web interface
         if image_data_b64:
             try:
-                # --- SURGICAL FIX: Dynamic MIME Type Detection for Web UI Uploads ---
+                # Dynamic MIME Type Detection for Web UI Uploads
+                # Intelligently identifies document type from uploaded files
                 if ',' in image_data_b64:
                     header, encoded_data = image_data_b64.split(',', 1)
                     mime_type = header.replace('data:', '').split(';')[0]
@@ -2132,24 +2130,23 @@ class WebChatView(APIView):
                     return Response({"reply": reply, "pending_document": document.id, "audio_base64": audio})
                 
                 txn = document.transactions.first() if document.transactions.exists() else None
-                decision = "\n💼 *LEDGER ENTRIES*\n"
+                decision = "\nLEDGER ENTRIES\n"
                 if txn and txn.entries.exists():
-                    for entry in txn.entries.filter(entry_type="debit"): decision += f"✚ DR {entry.account.ifrs_account}: KSH {entry.amount:,.2f}\n"
-                    for entry in txn.entries.filter(entry_type="credit"): decision += f"✖ CR {entry.account.ifrs_account}: KSH {entry.amount:,.2f}\n"
+                    for entry in txn.entries.filter(entry_type="debit"): decision += f"[DEBIT] {entry.account.ifrs_account}: KSH {entry.amount:,.2f}\n"
+                    for entry in txn.entries.filter(entry_type="credit"): decision += f"[CREDIT] {entry.account.ifrs_account}: KSH {entry.amount:,.2f}\n"
                 
                 bs_data = business.get_balance_sheet()
-                position = f"\n📊 *BALANCE SHEET IMPACT*\nAssets: KSH {bs_data.get('assets', Decimal('0.00')):,.2f}\nLiabilities: KSH {bs_data.get('liabilities', Decimal('0.00')):,.2f}\nEquity: KSH {bs_data.get('equity', Decimal('0.00')):,.2f}"
+                position = f"\nBALANCE SHEET IMPACT\nAssets: KSH {bs_data.get('assets', Decimal('0.00')):,.2f}\nLiabilities: KSH {bs_data.get('liabilities', Decimal('0.00')):,.2f}\nEquity: KSH {bs_data.get('equity', Decimal('0.00')):,.2f}"
                 
-                reply = f"✅ *DOCUMENT POSTED*\nID #{document.id} ({document.document_type.replace('_', ' ').title()}) from {document.vendor or 'Unknown'}\nTotal: KSH {document.total:,.2f}\n\n{decision}{position}"
+                reply = f"DOCUMENT POSTED\nID #{document.id} ({document.document_type.replace('_', ' ').title()}) from {document.vendor or 'Unknown'}\nTotal: KSH {document.total:,.2f}\n\n{decision}{position}"
                 audio = self.generate_tts_base64("The document has been extracted, validated, and posted to the ledger securely.")
                 return Response({"reply": reply, "audio_base64": audio})
             except Exception as e:
                 logger.error(f"Chat Extraction Failed: {e}")
-                return Response({"reply": "❌ Failed to extract document data.", "audio_base64": self.generate_tts_base64("I could not read that document.")})
+                return Response({"reply": "ERROR: Failed to extract document data.", "audio_base64": self.generate_tts_base64("I could not read that document.")})
 
-        # ==========================================
-        # SCENARIO B: Action on Pending Document (Button Clicks)
-        # ==========================================
+        # Scenario B: Action on Pending Document (Button Clicks)
+        # Approve or reject document awaiting user decision
         if pending_action and pending:
             action = pending_action.upper()
             if action == "POST":
@@ -2158,21 +2155,20 @@ class WebChatView(APIView):
                 pending.document_type = detected_type
                 pending.save()
                 pending.post_transaction()
-                reply_text = f"✅ *DOCUMENT POSTED*\nID #{pending.id} has been formally approved and written to the ledger."
+                reply_text = f"DOCUMENT POSTED\nID #{pending.id} has been formally approved and written to the ledger."
                 audio_b64 = self.generate_tts_base64("Understood. The pending document is now officially posted to the ledger.")
                 return Response({"reply": reply_text, "pending_document": None, "audio_base64": audio_b64})
 
             elif action == "REVOKE":
                 pending_id = pending.id
                 pending.delete()
-                return Response({"reply": f"✅ Document #{pending_id} securely discarded.", "pending_document": None, "audio_base64": self.generate_tts_base64("Got it. The document has been securely discarded.")})
+                return Response({"reply": f"Document #{pending_id} securely discarded.", "pending_document": None, "audio_base64": self.generate_tts_base64("Got it. The document has been securely discarded.")})
 
         if not incoming_msg and not audio_data_b64:
             return Response({"reply": "Hi! Ask me about your finances, upload a document, or tell me to look at your screen."})
 
-        # ==========================================
-        # SCENARIO C: Tools & Voice Command Logic
-        # ==========================================
+        # Scenario C: Tools and Voice Command Logic
+        # Process user intents and route to appropriate financial tools
         valid_accs = ", ".join([a[0] for a in IFRS_ACCOUNTS])
         valid_expenses = [e.value for e in ExpenseCategory]
         valid_assets = [a.value for a in AssetClass]
@@ -2391,7 +2387,7 @@ BEHAVIOR:
                     elif call.name == "get_balance_sheet":
                         bs_data = business.get_balance_sheet()
                         insight = generate_cfo_insight(client, biz_name, inferred_query, f"Assets: {bs_data.get('assets')}, Liabilities: {bs_data.get('liabilities')}, Equity: {bs_data.get('equity')}")
-                        tts_text, reply_text = insight, f"{insight}\n\n📊 BALANCE SHEET\nAssets: KSH {bs_data.get('assets'):,.2f}\nLiabilities: KSH {bs_data.get('liabilities'):,.2f}\nEquity: KSH {bs_data.get('equity'):,.2f}"
+                        tts_text, reply_text = insight, f"{insight}\n\nBALANCE SHEET\nAssets: KSH {bs_data.get('assets'):,.2f}\nLiabilities: KSH {bs_data.get('liabilities'):,.2f}\nEquity: KSH {bs_data.get('equity'):,.2f}"
                         break
                     elif call.name == "get_pnl_statement":
                         pnl_data = business.get_pnl()
@@ -2427,13 +2423,13 @@ BEHAVIOR:
                         account = Account.objects.filter(business=business, ifrs_account=account_code).first()
                         if account:
                             insight = generate_cfo_insight(client, biz_name, inferred_query, f"Account {account.name} has a balance of KSH {account.balance}.")
-                            tts_text, reply_text = insight, f"{insight}\n\n💼 {account.name.upper()}\nAccount Code: {account.ifrs_account}\nBalance: KSH {account.balance:,.2f}"
+                            tts_text, reply_text = insight, f"{insight}\n\nAccount: {account.name.upper()}\nAccount Code: {account.ifrs_account}\nBalance: KSH {account.balance:,.2f}"
                         else:
-                            reply_text = tts_text = f"❌ Account '{account_code}' not found."
+                            reply_text = tts_text = f"ERROR: Account '{account_code}' not found."
                         break
                     elif call.name == "resolve_pending_document":
                         if not pending:
-                            reply_text = "❌ No pending document found."
+                            reply_text = "ERROR: No pending document found."
                             tts_text = "I do not see any pending documents to resolve."
                             break
                         
@@ -2464,28 +2460,28 @@ BEHAVIOR:
                                 elif pending.ai_detected_type:
                                     audit_trace += f"• AI Detected: {pending.ai_detected_type}\n"
                                 
-                                decision = f"\n💼 LEDGER ENTRIES\n"
+                                decision = f"\nLEDGER ENTRIES\n"
                                 if txn and txn.entries.exists():
                                     for entry in txn.entries.filter(entry_type="debit"):
-                                        decision += f"✚ DR {entry.account.ifrs_account}: KSH {entry.amount:,.2f}\n"
+                                        decision += f"[DEBIT] {entry.account.ifrs_account}: KSH {entry.amount:,.2f}\n"
                                     for entry in txn.entries.filter(entry_type="credit"):
-                                        decision += f"✖ CR {entry.account.ifrs_account}: KSH {entry.amount:,.2f}\n"
+                                        decision += f"[CREDIT] {entry.account.ifrs_account}: KSH {entry.amount:,.2f}\n"
                                 
                                 bs_data = business.get_balance_sheet()
-                                position = f"\n📊 BALANCE SHEET IMPACT\nAssets: KSH {bs_data.get('assets', Decimal('0.00')):,.2f}\nLiabilities: KSH {bs_data.get('liabilities', Decimal('0.00')):,.2f}\nEquity: KSH {bs_data.get('equity', Decimal('0.00')):,.2f}"
+                                position = f"\nBALANCE SHEET IMPACT\nAssets: KSH {bs_data.get('assets', Decimal('0.00')):,.2f}\nLiabilities: KSH {bs_data.get('liabilities', Decimal('0.00')):,.2f}\nEquity: KSH {bs_data.get('equity', Decimal('0.00')):,.2f}"
                                 
                                 entity_name = pending.vendor or pending.customer or pending.billed_to or "Unknown"
-                                reply_text = f"✅ DOCUMENT POSTED\nID #{pending.id} ({pending.document_type.replace('_', ' ').title()}) from {entity_name}\nTotal: KSH {pending.total:,.2f}\n\n{audit_trace}{decision}{position}"
+                                reply_text = f"DOCUMENT POSTED\nID #{pending.id} ({pending.document_type.replace('_', ' ').title()}) from {entity_name}\nTotal: KSH {pending.total:,.2f}\n\n{audit_trace}{decision}{position}"
                                 tts_text = f"Understood. The document from {entity_name} is now officially posted to the ledger."
                             except Exception as e:
                                 logger.error(f"Audit message construction failed: {e}")
-                                reply_text = f"✅ Document #{pending.id} has been successfully posted to the ledger."
+                                reply_text = f"Document #{pending.id} has been successfully posted to the ledger."
                                 tts_text = "The document is posted."
                         
                         elif action == "REVOKE":
                             pending_id = pending.id
                             pending.delete()
-                            reply_text = f"✅ Document #{pending_id} has been securely discarded."
+                            reply_text = f"Document #{pending_id} has been securely discarded."
                             tts_text = "Got it. The document has been securely discarded."
                         break
 
@@ -2507,7 +2503,7 @@ BEHAVIOR:
                                     {"ifrs_account": debit_acc.ifrs_account, "type": "debit", "amount": args["amount"]}, 
                                     {"ifrs_account": credit_acc.ifrs_account, "type": "credit", "amount": args["amount"]}
                                 ])
-                            reply_text = f"✅ Posted KSH {args['amount']} to {debit_acc.name}."
+                            reply_text = f"COMPLETED: Posted KSH {args['amount']} to {debit_acc.name}.\"
                             tts_text = f"Done. Posted adjustment to {debit_acc.name}."
                         break
 
@@ -2530,7 +2526,7 @@ BEHAVIOR:
                                 max_borrow = max(total_assets * Decimal("0.20"), net_profit)
                                 
                                 if amount_usdt > max_borrow:
-                                    reply_text = f"❌ *LOAN DENIED*\nBased on your IFRS ledger, your maximum approved liquidity advance is {max_borrow:,.2f} USDT."
+                                    reply_text = f"ERROR: LOAN DENIED\nBased on your IFRS ledger, your maximum approved liquidity advance is {max_borrow:,.2f} USDT."
                                     tts_text = f"Loan denied. Based on your current assets and profit, your maximum borrowing limit is {max_borrow:,.2f} USDT."
                                     break
                                 
@@ -2569,7 +2565,7 @@ BEHAVIOR:
                                         {"ifrs_account": "short_term_borrowings", "type": "credit", "amount": kes_value}
                                     ])
                                 
-                                reply_text = f"✅ *LOAN APPROVED ON {network.upper()}*\n{amount_usdt:,.2f} USDT disbursed to treasury.\nHash: {data.get('txHash')}"
+                                reply_text = f"LOAN APPROVED ON {network.upper()}\n{amount_usdt:,.2f} USDT disbursed to treasury.\nHash: {data.get('txHash')}"
                                 tts_text = f"Your loan application was approved based on your ledger health. {amount_usdt} USDT has been disbursed to your Web3 treasury."
                             except Exception as e:
                                 logger.error(f"AI Lending Error: {e}")
@@ -2601,7 +2597,7 @@ BEHAVIOR:
                                     status=TransactionStatus.PENDING_SIGNATURE, document=doc
                                 )
                                 
-                            reply_text = f"✅ *PAYMENT QUEUED*\nThe bill settlement for {usdt_amount} USDT is ready. Please sign the transaction locally via OpenClaw."
+                            reply_text = f"PAYMENT QUEUED\nThe bill settlement for {usdt_amount} USDT is ready. Please sign the transaction locally via OpenClaw."
                             tts_text = f"The bill settlement has been queued for your local signature."
                         except Document.DoesNotExist:
                             reply_text = tts_text = f"Document not found."
@@ -2649,7 +2645,7 @@ BEHAVIOR:
                                     status=TransactionStatus.PENDING_SIGNATURE, document=doc
                                 )
                                 
-                            reply_text = f"✅ *PAYROLL QUEUED*\n{len(employees)} employees calculated for {total_payroll:,.2f} USDT total. Please sign via OpenClaw."
+                            reply_text = f"PAYROLL QUEUED\n{len(employees)} employees calculated for {total_payroll:,.2f} USDT total. Please sign via OpenClaw."
                             tts_text = f"Payroll queued for {len(employees)} employees."
                         except Exception as e:
                             logger.error(f"AI Payroll Error: {e}")
@@ -2687,7 +2683,7 @@ BEHAVIOR:
                                     status=TransactionStatus.PENDING_SIGNATURE, document=doc
                                 )
                                 
-                            reply_text = f"✅ *YIELD DEPLOYMENT QUEUED*\n{amount_to_deploy:,.2f} USDT ready for yield pool. Please sign via OpenClaw."
+                            reply_text = f"YIELD DEPLOYMENT QUEUED\n{amount_to_deploy:,.2f} USDT ready for yield pool. Please sign via OpenClaw."
                             tts_text = f"Yield deployment queued for your signature."
                         except Exception as e:
                             logger.error(f"AI Yield Error: {e}")
@@ -2732,7 +2728,7 @@ BEHAVIOR:
                                     status=TransactionStatus.PENDING_SIGNATURE, document=doc
                                 )
                                 
-                            reply_text = f"✅ *DIVIDENDS QUEUED*\n{total_dividend:,.2f} USDT ready for {len(distribution_array)} shareholders. Please sign via OpenClaw."
+                            reply_text = f"DIVIDENDS QUEUED\n{total_dividend:,.2f} USDT ready for {len(distribution_array)} shareholders. Please sign via OpenClaw."
                             tts_text = f"Dividend distribution queued."
                         except Exception as e:
                             logger.error(f"AI Dividend Error: {e}")
@@ -2770,7 +2766,7 @@ BEHAVIOR:
                                     status=TransactionStatus.PENDING_SIGNATURE, document=doc
                                 )
                                 
-                            reply_text = f"✅ *TAX ESCROW QUEUED*\n{amount_usdt:,.2f} USDT ready to be locked in vault. Please sign via OpenClaw."
+                            reply_text = f"TAX ESCROW QUEUED\n{amount_usdt:,.2f} USDT ready to be locked in vault. Please sign via OpenClaw."
                             tts_text = f"Tax escrow funding queued for your signature."
                         except Exception as e:
                             logger.error(f"AI Tax Escrow Error: {e}")
@@ -2825,9 +2821,8 @@ class AccountViewSet(viewsets.ModelViewSet):
         return Account.objects.filter(business__user=self.request.user)
 
 
-# ===============================================
-# GENERAL LEDGER & FINANCIAL PERIODS 
-# ===============================================
+# General Ledger and Financial Period Management
+# Handles journal entries, financial periods, and period closures
 
 class JournalEntryListView(APIView):
     """Provides a flat, chronological General Ledger view."""
@@ -2892,16 +2887,14 @@ def get_business_or_error(user):
     business = getattr(user, "business_profile", None)
     return business
 
-# --------------------------------------
-# Function to group accounts by subgroup
-# --------------------------------------
+# Helper Functions for Account Grouping and Financial Data
+# Organizes accounts by type and subgroup for reporting
 def get_accounts_with_subgroup(business, account_type: str):
     qs = business.accounts.filter(account_class=account_type)
     return list(qs.values('id', 'name', 'account_class', 'ifrs_account', 'balance', 'subgroup'))
 
-# --------
-# SFI API
-# --------
+# Balance Sheet API Endpoint
+# Returns the Statement of Financial Position
 class BalanceSheetAPIView(APIView):
     permission_classes = [IsAuthenticated]
     def get(self, request):
@@ -2912,9 +2905,8 @@ class BalanceSheetAPIView(APIView):
         serializer = BalanceSheetSerializer(data)
         return Response(serializer.data)
 
-# --------
-# PNL API
-# --------
+# Profit and Loss API Endpoint
+# Returns the Income Statement
 class PnLView(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -2924,9 +2916,8 @@ class PnLView(APIView):
         serializer = PnLSerializer(pnl_data)
         return Response(serializer.data)
 
-# -------------
-# CASHFLOW API
-# -------------
+# Cash Flow Statement API Endpoint
+# Returns the Statement of Cash Flows
 class CashFlowView(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -2936,9 +2927,8 @@ class CashFlowView(APIView):
         serializer = CashFlowSerializer(cashflow_data)
         return Response(serializer.data)
 
-# ---------------------
-# MANUAL ADJUSTMENT API
-# ---------------------
+# Manual Adjustment API Endpoint
+# Posts arbitrary double-entry adjustments to the ledger
 class ManualAdjustmentAPIView(APIView):
     permission_classes = [IsAuthenticated]
 

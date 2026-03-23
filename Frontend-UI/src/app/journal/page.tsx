@@ -83,8 +83,8 @@ export default function JournalComponent() {
       .format(num).replace('KES', 'KSH');
   };
 
-  if (loading) return <div className="loading">📖 Syncing General Journal...</div>;
-  if (error) return <div className="error">❌ {error}</div>;
+  if (loading) return <div className="loading"> Syncing General Journal...</div>;
+  if (error) return <div className="error"> {error}</div>;
   if (entries.length === 0) return <div className="empty">📭 The journal is empty.</div>;
 
   return (

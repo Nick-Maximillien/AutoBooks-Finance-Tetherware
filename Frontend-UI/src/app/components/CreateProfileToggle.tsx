@@ -9,7 +9,7 @@ export default function CreateProfileToggle() {
   return (
     <>
       <button className="tool-btn" onClick={() => setIsOpen(true)} title="Create Profile">
-        ➕ New Profile
+         New Profile
       </button>
 
       {isOpen && (

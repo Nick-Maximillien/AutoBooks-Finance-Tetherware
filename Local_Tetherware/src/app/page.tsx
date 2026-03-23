@@ -44,7 +44,7 @@ export default function TetherWareHome() {
 
         {/* Main Branding */}
         <div className="branding">
-          <div className="shield-icon">🛡️</div>
+          <div className="shield-icon"></div>
           <h1 className="app-title">TETHERWARE</h1>
           <p className="app-subtitle">SOFTWARE-DEFINED HARDWARE WALLET</p>
         </div>

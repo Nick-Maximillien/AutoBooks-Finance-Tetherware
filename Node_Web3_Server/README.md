@@ -42,8 +42,7 @@ The Node_Web3_Server provides:
 │ ┌────────────────────────────────────┐   │
 │ │  Bundler Router                    │   │
 │ │  ├── Pimlico (Primary)             │   │
-│ │  ├── Stackup (Fallback)            │   │
-│ │  └── Alchemy (Fallback 2)          │   │
+│ │  ├── Master wallet custom (Fallback)   │
 │ └────────────────────────────────────┘   │
 │                                          │
 │ ┌────────────────────────────────────┐   │
@@ -56,7 +55,7 @@ The Node_Web3_Server provides:
 │                                          │
 │ ┌────────────────────────────────────┐   │
 │ │  Chain Managers                    │   │
-│ │  ├── Ethereum Mainnet (ID: 1)      │   │
+│ │  ├── Ethereum  (ID: 1)      │   │
 │ │  ├── Polygon (ID: 137)             │   │
 │ │  ├── Optimism (ID: 10)             │   │
 │ │  ├── Arbitrum (ID: 42161)          │   │
@@ -64,7 +63,7 @@ The Node_Web3_Server provides:
 │ └────────────────────────────────────┘   │
 └──────────────────────────────────────────┘
            │
-           ├─── JSON-RPC ──→ Bundler Services (Pimlico, Stackup, etc.)
+           ├─── JSON-RPC ──→ Bundler Services (Pimlico, Stackup, custom etc.)
            │
            ├─── JSON-RPC ──→ Blockchain RPC Providers
            │

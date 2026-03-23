@@ -196,7 +196,7 @@ export default function FinancialPosition() {
 
             {data.warning && (
                 <div className="audit-warning">
-                    <strong>⚠️ IFRS Equation Imbalance:</strong> {data.warning}
+                    <strong> IFRS Equation Imbalance:</strong> {data.warning}
                 </div>
             )}
 

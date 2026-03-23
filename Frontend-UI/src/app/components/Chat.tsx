@@ -80,7 +80,7 @@ export default function Chat() {
       const base64Image = reader.result as string;
       setLoading(true);
       
-      setChatLog(prev => [...prev, { id: `msg-${Date.now()}`, role: "user", text: `📄 Uploaded: ${file.name}`, metadata: { type: "text" } }]);
+      setChatLog(prev => [...prev, { id: `msg-${Date.now()}`, role: "user", text: ` Uploaded: ${file.name}`, metadata: { type: "text" } }]);
 
       try {
         const token = await refreshAccessTokenIfNeeded(accessToken || "", refreshToken || "");
@@ -100,7 +100,7 @@ export default function Chat() {
 
         setChatLog(prev => [...prev, { id: `msg-${Date.now()}-bot`, role: "copilot", text: data.reply, metadata: parseAgentResponse(data.reply) }]);
       } catch (err) {
-        setChatLog(prev => [...prev, { id: `msg-${Date.now()}-err`, role: "copilot", text: "❌ Document extraction failed." }]);
+        setChatLog(prev => [...prev, { id: `msg-${Date.now()}-err`, role: "copilot", text: " Document extraction failed." }]);
       } finally {
         setLoading(false);
       }
@@ -140,7 +140,7 @@ export default function Chat() {
         setTimeout(() => { router.push('/ui_navigator'); }, 2000); // Redirect to the LiveStream UI
       }
     } catch (err) {
-      setChatLog(prev => [...prev, { id: `err`, role: "copilot", text: "❌ Error connecting to CFO." }]);
+      setChatLog(prev => [...prev, { id: `err`, role: "copilot", text: " Error connecting to CFO." }]);
     } finally { setLoading(false); }
   };
 
@@ -202,8 +202,8 @@ export default function Chat() {
           <div className="action-text">{msg.metadata.data.content}</div>
           {isReview && pendingDocument && (
             <div className="action-button-group">
-              <button className="btn-approve" onClick={() => handleDocumentAction("POST")}>✅ Proceed</button>
-              <button className="btn-cancel" onClick={() => handleDocumentAction("REVOKE")}>✕ Discard</button>
+              <button className="btn-approve" onClick={() => handleDocumentAction("POST")}> Proceed</button>
+              <button className="btn-cancel" onClick={() => handleDocumentAction("REVOKE")}> Discard</button>
             </div>
           )}
         </div>
