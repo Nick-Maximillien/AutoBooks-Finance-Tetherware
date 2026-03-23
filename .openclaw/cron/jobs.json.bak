@@ -1,0 +1,41 @@
+{
+  "version": 1,
+  "jobs": [
+    {
+      "id": "2c388700-00e7-4502-9fb1-f9dd1d5a1db4",
+      "agentId": "django-brain",
+      "name": "Claware-Heartbeat",
+      "enabled": true,
+      "createdAtMs": 1773878456043,
+      "updatedAtMs": 1774135125991,
+      "schedule": {
+        "kind": "every",
+        "everyMs": 300000,
+        "anchorMs": 1773878456043
+      },
+      "sessionTarget": "isolated",
+      "wakeMode": "now",
+      "payload": {
+        "kind": "agentTurn",
+        "message": "1. Use web_fetch on http://127.0.0.1:8000/api/documents/. 2. If you see ANY item in the list, use the 'nodes' tool with action='notify' and message='Claware Enclave: Pending Signature Found'. 3. If the list is empty [], stop immediately. DO NOT fetch the same URL twice."
+      },
+      "delivery": {
+        "mode": "none",
+        "channel": "last"
+      },
+      "state": {
+        "nextRunAtMs": 1774136025991,
+        "lastRunAtMs": 1774135103940,
+        "lastRunStatus": "error",
+        "lastStatus": "error",
+        "lastDurationMs": 22051,
+        "lastDeliveryStatus": "not-delivered",
+        "consecutiveErrors": 4,
+        "lastDelivered": false,
+        "lastErrorReason": "timeout",
+        "lastDeliveryError": "LLM request timed out.",
+        "runningAtMs": 1774136025995
+      }
+    }
+  ]
+}

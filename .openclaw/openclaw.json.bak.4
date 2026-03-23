@@ -1,0 +1,82 @@
+{
+  "meta": {
+    "lastTouchedVersion": "2026.3.13",
+    "lastTouchedAt": "2026-03-15T00:00:00.000Z"
+  },
+  "wizard": {
+    "lastRunAt": "2026-03-14T23:40:43.680Z",
+    "lastRunVersion": "2026.3.13",
+    "lastRunCommand": "configure",
+    "lastRunMode": "local"
+  },
+  "agents": {
+    "defaults": {
+      "workspace": "C:\\Users\\hp\\.openclaw\\workspace"
+    },
+    "list": [
+      {
+        "id": "django-brain",
+        "name": "Django CFO Proxy",
+        "mode": "proxy",
+        "endpoint": "https://autobooksai.loca.lt/whatsapp-webhook/"
+      }
+    ]
+  },
+  "bindings": [
+    {
+      "agentId": "django-brain",
+      "match": {
+        "channel": "whatsapp"
+      }
+    }
+  ],
+  "tools": {
+    "web": {
+      "search": {
+        "enabled": false
+      },
+      "fetch": {
+        "enabled": true
+      }
+    }
+  },
+  "commands": {
+    "native": "auto",
+    "nativeSkills": "auto",
+    "restart": true,
+    "ownerDisplay": "raw"
+  },
+  "channels": {
+    "whatsapp": {
+      "enabled": true,
+      "dmPolicy": "allowlist",
+      "selfChatMode": true,
+      "allowFrom": [
+        "+254741134327"
+      ],
+      "groupPolicy": "allowlist",
+      "debounceMs": 0,
+      "mediaMaxMb": 50
+    }
+  },
+  "gateway": {
+    "port": 18789,
+    "mode": "local",
+    "bind": "loopback",
+    "auth": {
+      "mode": "token",
+      "token": "f42f0510c1733e9734781abb4923dbb5b427d32049ed1b37"
+    },
+    "tailscale": {
+      "mode": "off",
+      "resetOnExit": false
+    }
+  },
+  "plugins": {
+    "entries": {
+      "whatsapp": {
+        "enabled": true
+      }
+    }
+  }
+}

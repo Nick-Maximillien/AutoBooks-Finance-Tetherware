@@ -1,0 +1,10 @@
+{
+  "version": 1,
+  "profiles": {
+    "vertex-bridge": {
+      "type": "token",
+      "provider": "custom",
+      "token": "dummy_key"
+    }
+  }
+}

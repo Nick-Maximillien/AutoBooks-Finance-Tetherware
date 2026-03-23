@@ -1,0 +1,16 @@
+{
+  "version": 1,
+  "profiles": {
+    "vertex-bridge": {
+      "type": "token",
+      "provider": "custom",
+      "token": "dummy_key"
+    }
+  },
+  "usageStats": {
+    "vertex-bridge": {
+      "errorCount": 0,
+      "lastUsed": 1774136047287
+    }
+  }
+}

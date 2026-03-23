@@ -1,0 +1,87 @@
+{
+  "meta": {
+    "lastTouchedVersion": "2026.3.13",
+    "lastTouchedAt": "2026-03-19T00:22:47.971Z"
+  },
+  "wizard": {
+    "lastRunAt": "2026-03-18T23:57:01.409Z",
+    "lastRunVersion": "2026.3.13",
+    "lastRunCommand": "doctor",
+    "lastRunMode": "local"
+  },
+  "auth": {
+    "profiles": {
+      "vertex-bridge": {
+        "provider": "custom",
+        "mode": "token"
+      }
+    }
+  },
+  "models": {
+  "providers": {
+    "custom": {
+      "baseUrl": "http://localhost:11434/v1",
+      "models": [
+        {
+          "id": "gemini-2.5-flash",
+          "name": "Gemini 2.5 Flash"
+        }
+      ]
+    }
+  }
+},
+  "agents": {
+    "defaults": {
+      "model": "custom/gemini-2.5-flash",
+      "workspace": "C:\\Users\\hp\\.openclaw\\workspace",
+      "compaction": {
+        "mode": "safeguard"
+      }
+    },
+    "list": [
+      {
+        "id": "django-brain",
+        "name": "Django CFO Proxy",
+        "model": "custom/gemini-2.5-flash"
+      }
+    ]
+  },
+  "tools": {
+    "web": {
+      "search": {
+        "enabled": false
+      },
+      "fetch": {
+        "enabled": true
+      }
+    }
+  },
+  "bindings": [],
+  "commands": {
+    "native": "auto",
+    "nativeSkills": "auto",
+    "restart": true,
+    "ownerDisplay": "raw"
+  },
+  "channels": {
+    "whatsapp": {
+      "enabled": false
+    }
+  },
+  "gateway": {
+    "port": 18789,
+    "mode": "local",
+    "bind": "loopback",
+    "auth": {
+      "mode": "token",
+      "token": "f42f0510c1733e9734781abb4923dbb5b427d32049ed1b37"
+    },
+    "tailscale": {
+      "mode": "off",
+      "resetOnExit": false
+    }
+  },
+  "plugins": {
+    "entries": {}
+  }
+}
